@@ -15,7 +15,6 @@
 
 <body>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo-circle"><img src="https://i.imgur.com/6SF5KQG.png" alt="logo"></div>
     <h2>Administrator</h2>
@@ -27,17 +26,15 @@
     <button id="logoutBtn">Logout</button>
   </aside>
 
-  <!-- LOADER -->
+
   <div class="loader-overlay" id="loader" aria-hidden="true">
     <div class="spinner" role="status" aria-hidden="true"></div>
     <p id="loaderTxt">Loading...</p>
   </div>
 
-  <!-- MAIN -->
   <main class="main">
     <h1>Admin Dashboard</h1>
 
-    <!-- INCIDENT REPORTS TAB -->
     <div id="irTab" class="tab-content active">
       <h2 style="color:#fff;margin-bottom:10px;">Incident Reports</h2>
 
@@ -72,7 +69,6 @@
     </div>
 
 
-    <!-- CASE MANAGEMENT TAB -->
     <div id="caseTab" class="tab-content">
       <h2 style="margin-bottom:8px;color:#fff;">Case Management</h2>
       <form id="caseForm" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
@@ -97,7 +93,7 @@
       </table>
     </div>
 
-    <!-- EMPLOYEE DATABASE TAB -->
+
     <div id="dbTab" class="tab-content">
       <h2 style="margin-bottom:8px;color:#fff;">Employee Database</h2>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -121,7 +117,7 @@
     <div class="watermark">Designed & Developed by: <strong>Edwin Angelo Catequista</strong></div>
   </main>
 
-  <!-- INCIDENT MODAL -->
+
   <div class="modal" id="irModal">
     <div class="modal-card">
       <h3 id="modalTitle">Add Incident Report</h3>
@@ -148,7 +144,6 @@
     </div>
   </div>
 
-  <!-- CASE MODAL (ER-style) -->
   <div id="caseModal" class="modal" aria-hidden="true">
     <div class="modal-card" style="width:820px; max-width:95%;">
       <span style="position:absolute; right:18px; top:12px; font-size:20px; color:#aaa; cursor:pointer;"
@@ -192,7 +187,7 @@
     </div>
   </div>
 
-  <!-- EMPLOYEE MODAL -->
+
   <div id="empModal" class="modal" aria-hidden="true">
     <div class="modal-card" style="width:820px; max-width:95%;">
       <span style="position:absolute; right:18px; top:12px; font-size:20px; color:#aaa; cursor:pointer;"
@@ -235,12 +230,11 @@
   </div>
 
   <script>
-    /* ===== SUPABASE CONFIG (kept per your request) ===== */
+
     const SUPABASE_URL = 'https://hzafznqoyinfjbqrrerp.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    /* ===== ELEMENTS & SHARED STATE ===== */
     const loader = document.getElementById('loader');
     const loaderTxt = document.getElementById('loaderTxt');
 
@@ -253,7 +247,7 @@
       window.location.href = 'index.html';
     });
 
-    /* TABS */
+
     tabBtns.forEach(btn => btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -268,7 +262,7 @@
       window.location.href = 'index.html';
     }
 
-    /* ===== INCIDENTS (existing admin features) ===== */
+
     const irTbody = document.getElementById('irTbody');
     const addBtn = document.getElementById('addIRBtn');
     const modal = document.getElementById('irModal');
@@ -790,5 +784,6 @@
     })();
   </script>
 </body>
+
 
 </html>
