@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Simpal HRMS</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/6SF5KQG.png">
+  <link rel="stylesheet" href="admin-styles.css">
+  <style>
+   
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="left-side">
+      <div class="logo-circle">
+        <img src="https://i.imgur.com/6SF5KQG.png" alt="Company Logo">
+      </div>
+      <h1>Simpal Group of Companies<br>Human Resources Portal</h1>
+    </div>
+
+    <div class="right-side">
+      <div class="error-msg" id="errorMsg">Invalid username or password.</div>
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <div class="watermark">Designed & Developed By: Edwin Angelo Catequista</div>
+    </div>
+  </div>
+
+  <div id="loadingOverlay">Logging In, Please Wait...</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const SUPABASE_URL = "https://hzafznqoyinfjbqrrerp.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8";
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      const loginForm = document.getElementById("loginForm");
+      const errorMsg = document.getElementById("errorMsg");
+      const overlay = document.getElementById("loadingOverlay");
+
+      const DASHBOARDS = {
+        admin: "admin-dashboard.html",
+        sales: "sales-dashboard.html",
+        er: "er-dashboard.html",
+        ops: "ops-dashboard.html",
+        fieldmagn: "field-dashboard-magn.html",
+        fieldmags: "field-dashboard-mags.html",
+        fieldlds: "field-dashboard-lds.html",
+        fieldldn: "field-dashboard-ldn.html",
+        fieldcot: "field-dashboard-cot.html",
+      };
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        overlay.classList.add("active");
+        errorMsg.classList.remove("show");
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        if (!username || !password) {
+          overlay.classList.remove("active");
+          errorMsg.textContent = "Please enter both username and password.";
+          errorMsg.classList.add("show");
+          return;
+        }
+
+        try {
+          const { data: user, error } = await client
+            .from("users")
+            .select("*")
+            .eq("username", username)
+            .single();
+
+          if (error || !user) throw new Error("Invalid login credentials.");
+          if (user.password !== password) throw new Error("Invalid login credentials.");
+
+          const target = DASHBOARDS[user.role];
+          if (!target) throw new Error("Dashboard for this role is not configured.");
+
+          sessionStorage.setItem("loggedIn", "true");
+          sessionStorage.setItem("role", user.role);
+
+          window.location.href = target;
+
+        } catch (err) {
+          overlay.classList.remove("active");
+          errorMsg.textContent = err.message;
+          errorMsg.classList.add("show");
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>

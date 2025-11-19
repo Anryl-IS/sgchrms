@@ -1,0 +1,722 @@
+/* ==== GLOBAL ==== */
+body {
+  font-family: "SF Pro Display", Roboto, Helvetica, sans-serif;
+  margin: 0;
+  background: linear-gradient(135deg, #1c1c1e, #2a2a2d);
+  color: #f2f2f7;
+  display: flex;
+  overflow-x: hidden;
+  animation: pageFadeIn 0.8s ease forwards;
+  opacity: 0;
+}
+@keyframes pageFadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==== SIDEBAR ==== */
+.sidebar {
+  width: 250px;
+  background: rgba(44,44,46,0.85);
+  backdrop-filter: blur(12px);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  position: fixed;
+  left: 0; top: 0;
+  animation: slideIn 0.8s ease;
+}
+@keyframes slideIn { from{transform:translateX(-100%);} to{transform:translateX(0);} }
+
+.sidebar h2 {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fffffff;
+  margin: 20px 0 30px;
+}
+.logo-circle {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex; justify-content: center; align-items: center;
+  margin: 0 auto 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transform: scale(0);
+  animation: popIn 0.6s forwards 0.3s;
+}
+.logo-circle img { width:80px; height:80px; }
+@keyframes popIn { to { transform: scale(1);} }
+
+.nav { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
+.nav button {
+  text-align: left;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  padding: 12px 15px;
+  border-radius: 14px;
+  font-size: 15px;
+  color: #f2f2f7;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.nav button:hover,
+.nav button.active {
+  background: linear-gradient(135deg, #0a84ff, #0066cc);
+  color: #fff;
+  transform: translateX(6px) scale(1.05);
+  box-shadow: 0 0 15px rgba(10,132,255,0.5);
+}
+
+/* ==== MAIN ==== */
+.main {
+  margin-left: 250px;
+  flex: 1;
+  padding: 30px;
+  min-height: 100vh;
+}
+h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 700;
+  font-size: 28px;
+  animation: fadeDrop 0.8s ease;
+}
+@keyframes fadeDrop { from{opacity:0;transform:translateY(-20px);} to{opacity:1;transform:translateY(0);} }
+
+/* ==== CONTENT PANELS ==== */
+.tab-content {
+  display: none;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  background: rgba(44,44,46,0.6);
+  backdrop-filter: blur(10px);
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  margin-bottom: 20px;
+}
+.tab-content.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==== SEARCH & FORMS (General) ==== */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+.search-container input,
+.search-container select {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 16px 12px 40px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08) url('https://img.icons8.com/ios-glyphs/20/0a84ff/search--v1.png') no-repeat 12px center;
+  background-size: 18px;
+  color: #f2f2f7;
+  transition: all 0.3s ease;
+}
+.search-container select {
+  background: rgba(255,255,255,0.08);
+  padding-left: 16px;
+}
+.search-container input:focus,
+.search-container select:focus {
+  outline: none;
+  border-color: #0a84ff;
+  box-shadow: 0 0 10px rgba(10,132,255,0.6);
+}
+.search-container button {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #0a84ff, #0066cc);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.search-container button:hover { transform: scale(1.08); }
+
+/* ==== TABLES ==== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: rgba(44,44,46,0.85);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+table th, table td {
+  padding: 14px;
+  text-align: left;
+  /* Added border for clear row separation */
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+table th {
+  background: rgba(10,132,255,0.15);
+  font-size: 13px;
+  color: #0a84ff;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+table tr:nth-child(even){ background: rgba(255,255,255,0.02); }
+table tr:hover {
+  background: rgba(10,132,255,0.15);
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Fix for last row border */
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+/* ==== POLICY FORM ==== */
+#policyForm {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  background: rgba(28,28,30,0.9);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Inputs */
+#policyForm input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#policyForm input:focus {
+  outline: none;
+  border-color: #0a84ff;
+  box-shadow: 0 0 8px rgba(10,132,255,0.6);
+  transform: scale(1.02);
+}
+
+/* Placeholder styling */
+#policyForm input::placeholder {
+  color: #b3b3b3;
+}
+
+/* Submit Button */
+#policyForm button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0a84ff, #0066cc);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#policyForm button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(10,132,255,0.6);
+  background: linear-gradient(135deg, #3399ff, #0a84ff);
+}
+
+/* Form animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 500px) {
+  #policyForm {
+    padding: 20px;
+  }
+  #policyForm button {
+    width: 100%;
+  }
+}
+
+
+/* ==== BUTTONS (General) ==== */
+button,
+form button,
+.modal-actions button,
+#logoutBtn {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #0a84ff, #0066cc);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+button:hover,
+form button:hover,
+.modal-actions button:hover,
+#logoutBtn:hover {
+  transform: scale(1.07);
+  box-shadow: 0 0 12px rgba(10,132,255,0.6);
+}
+#logoutBtn {
+  margin: 20px auto;
+  display: block;
+}
+
+/* ==== MODALS (General) ==== */
+.modal-content {
+  background: rgba(28,28,30,0.9);
+  padding: 25px;
+  border-radius: 22px;
+  width: 500px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.6);
+  color: #f2f2f7;
+  animation: popModal 0.35s ease;
+  border-top: 4px solid #0a84ff;
+  backdrop-filter: blur(8px);
+}
+@keyframes popModal {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ==== FOOTER ==== */
+.watermark {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 20px;
+  color: #8e8e93;
+}
+
+/* ==== LOADER ==== */
+.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(28,28,30,0.95);display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;opacity:0;visibility:hidden;transition:opacity 0.4s ease;}
+.loader-overlay.active{opacity:1;visibility:visible;}
+.spinner{width:60px;height:60px;border:6px solid #3a3a3c;border-top:6px solid #0a84ff;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{100%{transform:rotate(360deg);}}
+.loader-overlay p{margin-top:15px;color:#f2f2f7;font-size:16px;}
+
+/* ==== MODALS (Specific) ==== */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.modal-content {
+  background: rgba(28,28,30,0.95);
+  padding: 25px;
+  border-radius: 20px;
+  width: 480px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  color: #f2f2f7;
+  animation: fadeIn 0.4s ease;
+  backdrop-filter: blur(6px);
+}
+.modal h2 {
+  margin-top: 0;
+  color: #0a84ff;
+  border-bottom: 1px solid #3a3a3c;
+  padding-bottom: 8px;
+}
+.modal .info {
+  margin: 8px 0;
+  font-size: 14px;
+}
+.modal .info span { font-weight: 600; color: #fff; }
+.closeBtn {
+  float: right;
+  font-size: 22px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.closeBtn:hover { color: #fff; }
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* === PAGE LOAD ANIMATION === */
+body {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: pageFadeIn 0.8s ease forwards;
+}
+@keyframes pageFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === TABLE ROW STAGGERED ANIMATION === */
+table tbody tr {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: rowFadeIn 0.6s ease forwards;
+}
+table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+@keyframes rowFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === BUTTON HOVER PULSE === */
+button:hover {
+  animation: pulse 0.3s ease;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+/* === SEARCH BARS === */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap; /* responsive */
+}
+
+.search-container input,
+.search-container select {
+  flex: 1;
+  min-width: 220px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #3a3a3c;
+  background: #2c2c2e;
+  color: #f2f2f7;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.search-container input:focus,
+.search-container select:focus {
+  outline: none;
+  border-color: #0a84ff;
+  box-shadow: 0 0 6px rgba(10,132,255,0.6);
+}
+
+/* === BUTTONS (Specific overrides) === */
+button,
+form button,
+.modal-actions button,
+#logoutBtn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0a84ff, #0066cc);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0; /* keeps button from squishing */
+}
+
+button:hover,
+form button:hover,
+.modal-actions button:hover,
+#logoutBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(10,132,255,0.7);
+}
+
+#logoutBtn {
+  margin: 20px auto;
+  display: block;
+  border-radius: 25px;
+  padding: 12px 26px;
+}
+
+/* === ADD EMPLOYEE FORM STYLES (from Add-employee-dash.html) === */
+.add-employee-form {
+  background: rgba(28,28,30,0.9); /* Adjusted to match dashboard theme */
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  max-width: 700px;
+  margin: 0 auto; /* Center the form within its tab */
+  width: 100%;
+  animation: fadeIn 0.8s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+/* Make h2 take full grid width */
+.add-employee-form h2 {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #0a84ff;
+  text-align: center;
+}
+
+/* Make the button take full grid width */
+.add-employee-form button[type="submit"] {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+
+.add-employee-form input,
+.add-employee-form select {
+  width: 100%;
+  margin-bottom: 0; /* Removed margin here because gap handles spacing */
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 15px;
+  box-sizing: border-box; /* Crucial for grid layout */
+}
+
+.add-employee-form input[type="file"] {
+  padding: 10px 0;
+  border: none;
+  background: none;
+}
+
+.add-employee-form input:focus,
+.add-employee-form select:focus {
+  outline: none;
+  border-color: #0a84ff; /* Changed to dashboard primary color */
+  box-shadow: 0 0 8px rgba(10,132,255,0.6); /* Changed to dashboard primary color */
+  transform: scale(1.00); /* Removed scale on focus for cleaner form field interaction */
+}
+
+.add-employee-form label {
+  font-size: 14px;
+  color: #b3b3b3;
+  margin-bottom: -5px; /* Adjust spacing to bring label closer to input */
+  margin-top: 10px;
+  display: block;
+  grid-column: span 1; /* Ensure labels respect the grid */
+}
+
+/* Photo and File inputs need labels to span correctly, so we group them */
+.add-employee-form label[for="emp_photo"],
+.add-employee-form label[for="emp_201file"] {
+  grid-column: 1 / -1;
+}
+
+#photoPreview {
+  display: none;
+  margin-top: 5px;
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid rgba(10,132,255,0.6);
+  transition: all 0.3s ease;
+  grid-column: 1 / -1; /* Make photo preview span full width */
+  margin-bottom: 10px;
+}
+
+#photoPreview.active {
+  display: block;
+  animation: popIn 0.4s ease;
+}
+
+.loader-add-emp { /* Specific loader for add employee, to avoid conflict with general dashboard loader */
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(28,28,30,0.95);
+  justify-content: center;
+  align-items: center;
+  color: #0a84ff;
+  font-size: 20px;
+  font-weight: bold;
+  z-index: 1000;
+  flex-direction: column;
+}
+
+.loader-add-emp.active {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.spinner-add-emp { /* Specific spinner */
+  width: 45px;
+  height: 45px;
+  border: 4px solid #3a3a3c;
+  border-top: 4px solid #0a84ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+
+/* === EMPLOYEE TABLE SPECIFIC STYLES (FROM ER DASHBOARD) === */
+.emp-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.emp-table-actions .search-input {
+  /* Inherit general search-container input style, but adjust for single input */
+  flex-grow: 1;
+  min-width: 150px;
+  padding: 10px 14px 10px 40px; /* Adjust padding to match search icon */
+  border-radius: 30px;
+  background: rgba(255,255,255,0.08) url('https://img.icons8.com/ios-glyphs/20/0a84ff/search--v1.png') no-repeat 12px center;
+  background-size: 18px;
+}
+.emp-table-actions .search-input:focus {
+  box-shadow: 0 0 8px rgba(10,132,255,0.5);
+}
+
+.emp-table-container {
+  overflow-x: auto; /* Allows horizontal scrolling on small screens */
+}
+
+/* Action buttons within the table */
+.btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  background: #333; /* Default fallback */
+}
+.btn:hover {
+  opacity: 0.85;
+  transform: scale(1.05);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.viewBtn { background: #0a84ff !important; color: #fff; }
+.delBtn { background: #ff3b30 !important; color: #fff; }
+
+/* === EMPLOYEE MODAL SPECIFIC STYLES (FROM ER DASHBOARD) === */
+.modal-content {
+  width: 90%; /* Responsive width */
+  max-width: 800px; /* Max width for desktop */
+}
+
+.employee-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #3a3a3c;
+}
+.photo {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #0a84ff;
+  box-shadow: 0 0 15px rgba(10,132,255,0.4);
+  margin-bottom: 15px;
+}
+
+.employee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.employee-grid section {
+  background: rgba(44,44,46,0.8);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.1);
+  font-size: 14px;
+}
+.profile-row:last-child {
+  border-bottom: none;
+}
+
+.profile-label {
+  font-weight: 600;
+  color: #fff;
+  flex-basis: 40%;
+}
+
+.profile-value {
+  text-align: right;
+  color: #b3b3b3;
+  flex-basis: 60%;
+  word-break: break-word; /* Ensure long emails/addresses wrap */
+}
+
+
+/* === Responsive Adjustments === */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    padding-bottom: 10px;
+  }
+  .sidebar h2 { display: none; }
+  .nav { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .nav button { text-align: center; flex-basis: 45%; padding: 10px; }
+
+  .main {
+    margin-left: 0;
+    padding: 15px;
+    padding-top: 10px;
+  }
+
+  .logo-circle { display: none; }
+  h1 { font-size: 24px; }
+
+  .emp-table-actions { flex-direction: column; align-items: stretch; }
+  .emp-table-actions .search-input { min-width: 100%; }
+  .emp-table-actions div { text-align: center; }
+
+  .add-employee-form { grid-template-columns: 1fr; }
+  .add-employee-form label, .add-employee-form input, .add-employee-form select { grid-column: 1 / -1; }
+  .employee-grid { grid-template-columns: 1fr; }
+}

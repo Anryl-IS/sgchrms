@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HRMD Manager Dashboard</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/6SF5KQG.png">
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <link rel="stylesheet" href="adminhr-styles.css">
+  <style>
+
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo-circle"><img src="https://i.imgur.com/6SF5KQG.png" alt="logo"></div>
+    <h2>Administrator</h2>
+    <nav class="nav">
+      <button class="tab-btn active" data-tab="irTab">Incident Reports</button>
+      <button class="tab-btn" data-tab="caseTab">Case Management</button>
+      <button class="tab-btn" data-tab="dbTab">Employee Database</button>
+    </nav>
+    <button id="logoutBtn">Logout</button>
+  </aside>
+
+  <!-- LOADER -->
+  <div class="loader-overlay" id="loader" aria-hidden="true">
+    <div class="spinner" role="status" aria-hidden="true"></div>
+    <p id="loaderTxt">Loading...</p>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+    <h1>Admin Dashboard</h1>
+
+    <!-- INCIDENT REPORTS TAB -->
+    <div id="irTab" class="tab-content active">
+      <h2 style="color:#fff;margin-bottom:10px;">Incident Reports</h2>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:15px;">
+        <select id="areaFilter"
+          style="padding:10px;border-radius:8px;background:#161616;border:1px solid #2d2d2f;color:#fff;">
+          <option value="all">All Areas</option>
+          <option value="ir_mag_norte">Mag Norte</option>
+          <option value="ir_mag_sur">Mag Sur</option>
+          <option value="ir_ldn">Lanao Del Norte</option>
+          <option value="ir_lds">Lanao Del Sur</option>
+          <option value="ir_cot">Cotabato</option>
+        </select>
+        <button id="filterBtn"
+          style="background:#0a84ff;padding:10px 16px;border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;">Filter</button>
+        <button id="addIRBtn">+ Add Incident Report</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Agent Name</th>
+            <th>File</th>
+            <th>Date Posted</th>
+            <th>Area</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="irTbody"></tbody>
+      </table>
+    </div>
+
+
+    <!-- CASE MANAGEMENT TAB -->
+    <div id="caseTab" class="tab-content">
+      <h2 style="margin-bottom:8px;color:#fff;">Case Management</h2>
+      <form id="caseForm" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+        <input id="case_area" placeholder="Area" required style="flex:1;min-width:180px;">
+        <input id="case_name" placeholder="Case" required style="flex:2;min-width:220px;">
+        <input id="case_employees" placeholder="Employee(s) Involved" required style="flex:2;min-width:220px;">
+        <input id="case_officer" placeholder="Grievance Officer" required style="flex:1;min-width:160px;">
+        <button type="submit" id="addCaseBtn" class="action-btn"
+          style="background:#0a84ff;color:#fff;border-radius:10px;padding:10px 14px;">Add Case</button>
+      </form>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Case</th>
+            <th>Area</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="caseTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- EMPLOYEE DATABASE TAB -->
+    <div id="dbTab" class="tab-content">
+      <h2 style="margin-bottom:8px;color:#fff;">Employee Database</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <input id="empSearch" class="search-input" placeholder="Search name, position, email or mobile...">
+        <div class="small-muted">Records Loaded.</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name (English)</th>
+            <th>Position</th>
+            <th>Email</th>
+            <th>Mobile</th>
+          </tr>
+        </thead>
+        <tbody id="dbTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="watermark">Designed & Developed by: <strong>Edwin Angelo Catequista</strong></div>
+  </main>
+
+  <!-- INCIDENT MODAL -->
+  <div class="modal" id="irModal">
+    <div class="modal-card">
+      <h3 id="modalTitle">Add Incident Report</h3>
+      <form id="irForm">
+        <input type="hidden" id="irId">
+        <input id="agent_name" type="text" placeholder="Agent name" required>
+        <input id="area" type="text" placeholder="Area" required>
+        <input id="date_posted" type="date" required>
+        <select id="status" required>
+          <option value="">Select Status</option>
+          <option value="Open">Open</option>
+          <option value="Closed">Closed</option>
+          <option value="Pending">Pending</option>
+        </select>
+        <input id="file" type="file" accept=".pdf,.doc,.docx,.jpg,.png">
+        <div id="filePreview" style="margin-bottom:10px;"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" id="closeModalBtn" class="action-btn"
+            style="background:#444;color:#fff;">Cancel</button>
+          <button type="submit" id="saveBtn" class="action-btn" style="background:#0a84ff;color:#fff;">Save</button>
+        </div>
+        <div id="formMsg" style="margin-top:8px;color:#ffcc00;display:none;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CASE MODAL (ER-style) -->
+  <div id="caseModal" class="modal" aria-hidden="true">
+    <div class="modal-card" style="width:820px; max-width:95%;">
+      <span style="position:absolute; right:18px; top:12px; font-size:20px; color:#aaa; cursor:pointer;"
+        id="closeCaseModal">&times;</span>
+      <h3 id="caseModalTitle">Case Details</h3>
+
+      <div id="caseDetailsContainer" style="margin-top:8px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:220px;">
+            <div class="small-muted">Case</div>
+            <div id="detail_case_name" style="margin-bottom:8px;"></div>
+            <div class="small-muted">Area</div>
+            <div id="detail_area" style="margin-bottom:8px;"></div>
+            <div class="small-muted">Employees</div>
+            <div id="detail_employees" style="margin-bottom:8px;"></div>
+            <div class="small-muted">Officer</div>
+            <div id="detail_officer" style="margin-bottom:8px;"></div>
+            <div class="small-muted">File</div>
+            <div id="detail_file_link" style="margin-bottom:8px;"></div>
+          </div>
+          <div style="flex:1;min-width:200px;">
+            <div class="small-muted">STATUS</div>
+            <select id="detail_STATUS"
+              style="width:100%;padding:10px;border-radius:8px;background:#161616;border:1px solid #2d2d2f;color:#fff;">
+              <option value="OPEN">OPEN</option>
+              <option value="NTE">NTE</option>
+              <option value="AH">AH</option>
+              <option value="NTW">NTW</option>
+              <option value="NTD">NTD</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:18px;">
+          <div id="savedMsg" style="margin-right:auto;color:#4cd964;font-weight:600;opacity:0;transition:opacity .2s;">
+            Status updated!</div>
+          <button class="action-btn" id="cancelCaseBtn" style="background:#444;color:#fff;">Close</button>
+          <button class="action-btn" id="saveCaseBtn"
+            style="background:#00b37e;color:#fff;display:none;margin-left:8px;">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE MODAL -->
+  <div id="empModal" class="modal" aria-hidden="true">
+    <div class="modal-card" style="width:820px; max-width:95%;">
+      <span style="position:absolute; right:18px; top:12px; font-size:20px; color:#aaa; cursor:pointer;"
+        id="closeEmpModal">&times;</span>
+      <h3 id="empModalTitle">Employee Profile</h3>
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+        <div style="min-width:140px; text-align:center;">
+          <img id="empPhoto" src="" alt="Employee photo"
+            style="width:120px;height:120px;border-radius:999px;object-fit:cover;border:3px solid #1e1e1f;">
+        </div>
+        <div style="flex:1;min-width:280px;">
+          <div class="small-muted">Name (English)</div>
+          <div id="emp_name_english"></div>
+          <div class="small-muted">Name (Chinese)</div>
+          <div id="emp_name_chinese"></div>
+          <div class="small-muted">Position</div>
+          <div id="emp_position"></div>
+          <div class="small-muted">Sex</div>
+          <div id="emp_sex"></div>
+          <div class="small-muted">Blood Type</div>
+          <div id="emp_blood_type"></div>
+        </div>
+        <div style="flex:1;min-width:220px;">
+          <div class="small-muted">Email</div>
+          <div id="emp_email"></div>
+          <div class="small-muted">Mobile</div>
+          <div id="emp_mobile"></div>
+          <div class="small-muted">ID Card</div>
+          <div id="emp_id_card"></div>
+          <div class="small-muted">DOB</div>
+          <div id="emp_dob"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="action-btn" id="closeEmpBtn" style="background:#444;color:#fff;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== SUPABASE CONFIG (kept per your request) ===== */
+    const SUPABASE_URL = 'https://hzafznqoyinfjbqrrerp.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    /* ===== ELEMENTS & SHARED STATE ===== */
+    const loader = document.getElementById('loader');
+    const loaderTxt = document.getElementById('loaderTxt');
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    });
+
+    /* TABS */
+    tabBtns.forEach(btn => btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      contents.forEach(c => c.classList.remove('active'));
+      const id = btn.dataset.tab;
+      document.getElementById(id).classList.add('active');
+    }));
+
+    /* ===== AUTH CHECK (admin uses loggedIn flag) ===== */
+    if (!sessionStorage.getItem('loggedIn')) {
+      // redirect to login if not logged in
+      window.location.href = 'index.html';
+    }
+
+    /* ===== INCIDENTS (existing admin features) ===== */
+    const irTbody = document.getElementById('irTbody');
+    const addBtn = document.getElementById('addIRBtn');
+    const modal = document.getElementById('irModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const form = document.getElementById('irForm');
+    const saveBtn = document.getElementById('saveBtn');
+    const fileInput = document.getElementById('file');
+    const filePreview = document.getElementById('filePreview');
+    const modalTitle = document.getElementById('modalTitle');
+    const irIdInput = document.getElementById('irId');
+
+    addBtn.addEventListener('click', () => openModal());
+    closeModalBtn.addEventListener('click', () => modal.classList.remove('show'));
+
+    irTbody.addEventListener('click', async e => {
+      const id = e.target.dataset.id;
+      if (e.target.classList.contains('edit')) {
+        showLoader('Loading report...');
+        const { data, error } = await supabase.from('incident_reports_salesforce').select('*').eq('id', id).single();
+        hideLoader();
+        if (error) { alert('Error loading report'); return; }
+        openModal(true, data);
+      }
+      if (e.target.classList.contains('delete')) {
+        if (confirm('Delete this report?')) {
+          showLoader('Deleting...');
+          await supabase.from('incident_reports_salesforce').delete().eq('id', id);
+          hideLoader();
+          fetchIRs();
+        }
+      }
+      if (e.target.classList.contains('view')) {
+        window.open(e.target.dataset.url, '_blank');
+      }
+    });
+
+    function openModal(edit = false, ir = null) {
+      modal.classList.add('show');
+      if (edit && ir) {
+        modalTitle.textContent = 'Edit Incident Report';
+        irIdInput.value = ir.id;
+        document.getElementById('agent_name').value = ir.agent_name || '';
+        document.getElementById('area').value = ir.area || '';
+        document.getElementById('date_posted').value = ir.date_posted ? new Date(ir.date_posted).toISOString().split('T')[0] : '';
+        document.getElementById('status').value = ir.status || '';
+        filePreview.innerHTML = ir.file_name ? `<a href="${ir.file_url}" target="_blank">${ir.file_name}</a>` : '';
+      } else {
+        modalTitle.textContent = 'Add Incident Report';
+        form.reset();
+        irIdInput.value = '';
+        filePreview.innerHTML = '';
+      }
+    }
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      const agent_name = document.getElementById('agent_name').value;
+      const area = document.getElementById('area').value;
+      const date_posted = document.getElementById('date_posted').value;
+      const status = document.getElementById('status').value;
+      const file = fileInput.files[0];
+
+      let file_name = '';
+      let file_url = '';
+
+      try {
+        showLoader('Uploading file...');
+        if (file) {
+          file_name = `${Date.now()}_${file.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from('incident_reports_sales')
+            .upload(file_name, file);
+          if (uploadError) {
+            hideLoader();
+            alert('File upload failed!');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+            return;
+          }
+          const { data: publicURL } = supabase.storage
+            .from('incident_reports_sales')
+            .getPublicUrl(file_name);
+          file_url = publicURL.publicUrl;
+        }
+
+        const payload = { agent_name, area, date_posted, status, file_name, file_url };
+
+        if (irIdInput.value) {
+          await supabase.from('incident_reports_salesforce').update(payload).eq('id', irIdInput.value);
+        } else {
+          await supabase.from('incident_reports_salesforce').insert([payload]);
+        }
+
+        hideLoader();
+        modal.classList.remove('show');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save';
+        fetchIRs();
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        alert('Error saving incident. Check console.');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save';
+      }
+    });
+
+    const filterBtn = document.getElementById('filterBtn');
+    const areaFilter = document.getElementById('areaFilter');
+
+    filterBtn.addEventListener('click', () => {
+      const selected = areaFilter.value;
+      fetchIRs(selected);
+    });
+
+    async function fetchIRs(area = 'all') {
+      showLoader('Loading incident reports...');
+      irTbody.innerHTML = '';
+
+      const tables = [
+        { name: 'ir_mag_norte', label: 'Mag Norte' },
+        { name: 'ir_mag_sur', label: 'Mag Sur' },
+        { name: 'ir_ldn', label: 'Lanao Del Norte' },
+        { name: 'ir_lds', label: 'Lanao Del Sur' },
+        { name: 'ir_cot', label: 'Cotabato' }
+      ];
+
+      let allData = [];
+
+      try {
+        if (area === 'all') {
+          // Fetch from all tables
+          const fetchPromises = tables.map(async t => {
+            const { data, error } = await supabase
+              .from(t.name)
+              .select('*')
+              .order('date_posted', { ascending: false });
+            if (!error && data) {
+              return data.map(d => ({ ...d, area_label: t.label }));
+            }
+            return [];
+          });
+
+          const results = await Promise.all(fetchPromises);
+          allData = results.flat();
+        } else {
+          // Fetch from the selected table
+          const selectedTable = tables.find(t => t.name === area);
+          if (!selectedTable) {
+            hideLoader();
+            alert('Invalid area selected.');
+            return;
+          }
+
+          const { data, error } = await supabase
+            .from(selectedTable.name)
+            .select('*')
+            .order('date_posted', { ascending: false });
+
+          if (error) throw error;
+          allData = data.map(d => ({ ...d, area_label: selectedTable.label }));
+        }
+
+        hideLoader();
+
+        if (allData.length === 0) {
+          irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No Incident Reports</td></tr>`;
+          return;
+        }
+
+        allData.sort((a, b) => new Date(b.date_posted) - new Date(a.date_posted));
+
+        allData.forEach(ir => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+        <td>${escapeHtml(ir.agent_name || '')}</td>
+        <td>${ir.file_name ? `<a href="${ir.file_url}" target="_blank">${escapeHtml(ir.file_name)}</a>` : ''}</td>
+        <td>${ir.date_posted ? new Date(ir.date_posted).toLocaleDateString() : ''}</td>
+        <td>${escapeHtml(ir.area_label || '')}</td>
+        <td>${escapeHtml(ir.status || '')}</td>
+        <td>
+          ${ir.file_url ? `<button class="action-btn view" data-url="${ir.file_url}">View</button>` : ''}
+        </td>
+      `;
+          irTbody.appendChild(tr);
+        });
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Error loading data.</td></tr>`;
+      }
+    }
+
+    // Load all by default
+    fetchIRs();
+
+
+    /* ===== CASES (ER features) ===== */
+    const caseTbody = document.getElementById('caseTbody');
+    const caseForm = document.getElementById('caseForm');
+    const caseModal = document.getElementById('caseModal');
+    const closeCaseModal = document.getElementById('closeCaseModal');
+    const cancelCaseBtn = document.getElementById('cancelCaseBtn');
+    const saveCaseBtn = document.getElementById('saveCaseBtn');
+    const savedMsg = document.getElementById('savedMsg');
+    const detail_case_name = document.getElementById('detail_case_name');
+    const detail_area = document.getElementById('detail_area');
+    const detail_employees = document.getElementById('detail_employees');
+    const detail_officer = document.getElementById('detail_officer');
+    const detail_STATUS = document.getElementById('detail_STATUS');
+    const detail_file_link = document.getElementById('detail_file_link');
+
+
+    let currentCase = null;
+    let originalStatus = null;
+    let employeesCache = []; // for employee search
+
+    async function loadCases() {
+      showLoader('Loading cases...');
+      try {
+        const { data, error } = await supabase
+          .from('cases')     // your table name
+          .select('*')
+          .order('id', { ascending: false });
+
+        hideLoader();
+
+        if (error) {
+          console.error('Error loading cases:', error);
+          caseTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          caseTbody.innerHTML = `<tr><td colspan="4">No cases found.</td></tr>`;
+          return;
+        }
+
+        caseTbody.innerHTML = '';
+        data.forEach(row => {
+          const caseName = row.case_name ?? row.CASE_NAME ?? '';
+          const area = row.area ?? row.AREA ?? '';
+          const status = (row.status ?? row.status ?? 'OPEN');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${escapeHtml(caseName)}</td><td>${escapeHtml(area)}</td><td>${escapeHtml(status)}</td>
+        <td>
+          <button class="action-btn view" data-id="${row.id}" data-type="open-case">Open</button>
+        </td>`;
+          // open case on row click or button
+          tr.onclick = () => openCaseModal(row);
+          const btn = tr.querySelector('button.view');
+          btn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            openCaseModal(row);
+          });
+          caseTbody.appendChild(tr);
+        });
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        caseTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
+      }
+    }
+
+
+    function openCaseModal(row) {
+      currentCase = row;
+      originalStatus = (row.STATUS ?? row.status ?? 'OPEN');
+
+      detail_case_name.textContent = row.case_name ?? row.CASE_NAME ?? '';
+      detail_area.textContent = row.area ?? row.AREA ?? '';
+      detail_employees.textContent = row.employees ?? row.EMPLOYEES ?? '';
+      detail_officer.textContent = row.officer ?? row.OFFICER ?? '';
+
+      // --- START MODIFIED LOGIC FOR SUPPORTING_DOCS ---
+      const docsUrl = row.supporting_docs ?? ''; // Assuming 'supporting_docs' holds the file URL
+      const caseName = row.case_name ?? row.CASE_NAME ?? 'Case Document'; // Use case name for link text
+
+      if (docsUrl) {
+        detail_file_link.innerHTML = `<a href="${docsUrl}" target="_blank" style="color:#0a84ff; text-decoration:underline;">View ${escapeHtml(caseName)} Documents</a>`;
+      } else {
+        detail_file_link.textContent = 'No file attached.';
+      }
+      // --- END MODIFIED LOGIC ---
+
+      const cur = String(originalStatus).toUpperCase();
+      detail_STATUS.value = ['OPEN', 'NTE', 'AH', 'NTW', 'NTD'].includes(cur) ? cur : 'OPEN';
+
+      saveCaseBtn.style.display = 'none';
+      savedMsg.style.opacity = 0;
+
+      caseModal.classList.add('show');
+    }
+    // ... existing code ...
+
+    detail_STATUS.addEventListener('change', () => {
+      const newVal = detail_STATUS.value;
+      if (!originalStatus) originalStatus = (currentCase?.STATUS ?? currentCase?.status ?? 'OPEN');
+      if (String(newVal).toUpperCase() !== String(originalStatus).toUpperCase()) {
+        saveCaseBtn.style.display = 'inline-block';
+      } else {
+        saveCaseBtn.style.display = 'none';
+      }
+    });
+
+    saveCaseBtn.addEventListener('click', async () => {
+      if (!currentCase) return;
+
+      const newStatus = detail_STATUS.value;
+
+      showLoader('Saving status...');
+
+      try {
+        const { error } = await supabase
+          .from('cases')
+          .update({ status: newStatus })
+          .eq('id', currentCase.id);
+
+        hideLoader();
+
+        if (error) {
+          console.error(error);
+          alert('Failed to update status.');
+          return;
+        }
+
+        // Update UI
+        savedMsg.style.opacity = 1;
+        saveCaseBtn.style.display = 'none';
+        originalStatus = newStatus;
+
+        // Refresh table data
+        loadCases();
+
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        alert('Unexpected error, check console.');
+      }
+    });
+
+
+    closeCaseModal.addEventListener('click', () => {
+      caseModal.classList.remove('show');
+      currentCase = null;
+      originalStatus = null;
+    });
+    cancelCaseBtn.addEventListener('click', () => {
+      caseModal.classList.remove('show');
+      currentCase = null;
+      originalStatus = null;
+    });
+
+    caseForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const newCase = {
+        case_name: document.getElementById('case_name').value,
+        area: document.getElementById('case_area').value,
+        employees: document.getElementById('case_employees').value,
+        officer: document.getElementById('case_officer').value,
+        STATUS: 'OPEN'
+      };
+
+      try {
+        showLoader('Adding case...');
+        const { error } = await supabase.from('cases').insert([newCase]);
+        hideLoader();
+        if (error) {
+          console.error('Insert error:', error);
+          alert('Error adding case: ' + error.message);
+          return;
+        }
+        caseForm.reset();
+        await loadCases();
+        // auto-switch to case tab to show result
+        document.querySelector('.tab-btn[data-tab="caseTab"]').click();
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        alert('Error adding case. Check console.');
+      }
+    };
+
+    /* ===== EMPLOYEES (ER features) ===== */
+    const dbTbody = document.getElementById('dbTbody');
+    const empSearch = document.getElementById('empSearch');
+    const empModal = document.getElementById('empModal');
+    const closeEmpModal = document.getElementById('closeEmpModal');
+    const closeEmpBtn = document.getElementById('closeEmpBtn');
+
+    const empPhoto = document.getElementById('empPhoto');
+    const emp_name_english = document.getElementById('emp_name_english');
+    const emp_name_chinese = document.getElementById('emp_name_chinese');
+    const emp_position = document.getElementById('emp_position');
+    const emp_sex = document.getElementById('emp_sex');
+    const emp_blood_type = document.getElementById('emp_blood_type');
+    const emp_dob = document.getElementById('emp_dob');
+    const emp_height = null; // not shown in simplified modal but kept in data
+    const emp_weight = null;
+    const emp_id_card = document.getElementById('emp_id_card');
+    const emp_email = document.getElementById('emp_email');
+    const emp_mobile = document.getElementById('emp_mobile');
+
+    async function loadEmployees() {
+      showLoader('Loading employees...');
+      try {
+        const { data, error } = await supabase
+          .from('employees')
+          .select('*')
+          .order('id', { ascending: false });
+
+        hideLoader();
+
+        if (error) {
+          console.error('Error loading employees:', error);
+          dbTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
+          employeesCache = [];
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          dbTbody.innerHTML = `<tr><td colspan="4">No employees found.</td></tr>`;
+          employeesCache = [];
+          return;
+        }
+
+        employeesCache = data;
+        renderEmployeeRows(data);
+      } catch (err) {
+        hideLoader();
+        console.error(err);
+        dbTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
+      }
+    }
+
+    function renderEmployeeRows(list) {
+      dbTbody.innerHTML = '';
+      list.forEach(row => {
+        const name = row.name_english ?? '';
+        const position = row.position ?? '';
+        const email = row.email ?? '';
+        const mobile = row.mobile ?? '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(position)}</td><td>${escapeHtml(email)}</td><td>${escapeHtml(mobile)}</td>`;
+        tr.onclick = () => openEmpModal(row);
+        dbTbody.appendChild(tr);
+      });
+    }
+
+    empSearch.addEventListener('input', (e) => {
+      const q = (e.target.value || '').trim().toLowerCase();
+      if (!q) {
+        renderEmployeeRows(employeesCache);
+        return;
+      }
+      const filtered = employeesCache.filter(r => {
+        return (String(r.name_english || '') + ' ' + String(r.position || '') + ' ' + String(r.email || '') + ' ' + String(r.mobile || '')).toLowerCase().includes(q);
+      });
+      renderEmployeeRows(filtered);
+    });
+
+    function openEmpModal(row) {
+      const photo = row.photo_url ?? row.photo ?? '';
+      empPhoto.src = photo || 'https://via.placeholder.com/300x300?text=No+Photo';
+      empPhoto.alt = (row.name_english || 'Employee');
+
+      emp_name_english.textContent = row.name_english ?? '';
+      emp_name_chinese.textContent = row.name_chinese ?? '';
+      emp_position.textContent = row.position ?? '';
+      emp_sex.textContent = row.sex ?? '';
+      emp_blood_type.textContent = row.blood_type ?? '';
+      emp_dob.textContent = row.dob ? new Date(row.dob).toLocaleDateString() : '';
+      emp_id_card.textContent = row.id_card ?? '';
+      emp_email.textContent = row.email ?? '';
+      emp_mobile.textContent = row.mobile ?? '';
+
+      empModal.classList.add('show');
+    }
+
+    closeEmpModal.addEventListener('click', closeEmp);
+    closeEmpBtn.addEventListener('click', closeEmp);
+    function closeEmp() {
+      empModal.classList.remove('show');
+    }
+
+    /* ===== UTIL ===== */
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showLoader(txt = 'Loading...') {
+      loaderTxt.textContent = txt;
+      loader.classList.add('active');
+    }
+
+    function hideLoader() {
+      loader.classList.remove('active');
+    }
+
+    /* ===== INIT (load all) ===== */
+    (async function init() {
+      try {
+        // load incident reports, cases and employees
+        await fetchIRs();
+        await loadCases();
+        await loadEmployees();
+      } catch (err) {
+        console.error('Init error', err);
+      }
+    })();
+  </script>
+</body>
+
+</html>

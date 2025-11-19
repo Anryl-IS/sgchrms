@@ -1,0 +1,325 @@
+/* ===== iOS INSPIRED LOGIN STYLE ===== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Roboto, sans-serif;
+  margin: 0;
+  background: url('https://i.imgur.com/u4fLKos.jpeg') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  color-scheme: dark;
+}
+
+/* Subtle overlay tint + glass blur for that iOS depth */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 22, 24, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  z-index: 0;
+}
+
+/* ===== LOGIN CONTAINER ===== */
+.login-container {
+  display: flex;
+  background: rgba(44, 44, 46, 0.35);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  padding: 55px 60px;
+  border-radius: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  width: 85%;
+  max-width: 820px;
+  gap: 45px;
+  z-index: 1;
+  animation: fadeSlideIn 0.6s ease-out forwards;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.login-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.55);
+}
+
+/* ===== LEFT SIDE ===== */
+.left-side {
+  text-align: center;
+  flex: 1;
+}
+
+.logo-circle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffffff 0%, #f2f2f7 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 25px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px 4px rgba(255, 255, 255, 0.3);
+  animation: logoPop 0.7s ease forwards;
+}
+
+.logo-circle img {
+  width: 130px;
+  height: auto;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #f2f2f7;
+  line-height: 1.4;
+  letter-spacing: 0.4px;
+}
+
+/* ===== RIGHT SIDE ===== */
+.right-side {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Inputs: rounded, glossy, minimal */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+form input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2f2f7;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+form input::placeholder {
+  color: #a1a1a6;
+}
+
+form input:focus {
+  outline: none;
+  border-color: #0a84ff;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+}
+
+/* Buttons: Apple-blue gradient & subtle depth */
+form button {
+  padding: 15px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, #0a84ff, #007aff);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(10, 132, 255, 0.4);
+}
+
+form button:hover {
+  transform: scale(1.02);
+  background: linear-gradient(135deg, #007aff, #0a84ff);
+  box-shadow: 0 8px 20px rgba(10, 132, 255, 0.5);
+}
+
+/* ===== MESSAGES ===== */
+.error-msg {
+  color: #ff453a;
+  font-size: 14px;
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.error-msg.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.watermark {
+  font-size: 12px;
+  margin-top: 18px;
+  color: #8e8e93;
+  text-align: center;
+}
+
+/* ===== LOADING OVERLAY ===== */
+#loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 22, 24, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  backdrop-filter: blur(12px);
+}
+
+#loadingOverlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.spinner {
+  border: 5px solid rgba(255, 255, 255, 0.1);
+  border-top: 5px solid #0a84ff;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #f2f2f7;
+  animation: fadeIn 1.2s infinite alternate;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoPop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.4;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+
+#loadingOverlay.active {
+  display: block;
+}
+
+.error-msg {
+  color: red;
+  display: none;
+  margin-bottom: 10px;
+}
+
+.error-msg.show {
+  display: block;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 700px) {
+  .login-container {
+    flex-direction: column;
+    max-width: 380px;
+    padding: 35px;
+    gap: 25px;
+  }
+
+  .logo-circle {
+    width: 130px;
+    height: 130px;
+  }
+
+  .logo-circle img {
+    width: 100px;
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-6px);
+  }
+
+  50% {
+    transform: translateX(6px);
+  }
+
+  75% {
+    transform: translateX(-6px);
+  }
+}
+
+input.invalid {
+  animation: shake 0.3s;
+  border-color: #ff453a;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.floating-shape {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
