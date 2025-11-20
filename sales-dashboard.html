@@ -1,20 +1,22 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sales Force HR</title>
   <link rel="icon" href="https://i.imgur.com/6SF5KQG.png">
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-<link rel="stylesheet" href="sales-styles.css">
+  <link rel="stylesheet" href="sales-styles.css">
 
   <style>
 
 
   </style>
 </head>
+
 <body>
-    
+
   <div class="layout">
     <aside class="sidebar">
       <img src="https://i.imgur.com/6SF5KQG.png" alt="logo">
@@ -46,10 +48,7 @@
             <option value="Open">Open</option>
             <option value="Pending">Pending</option>
             <option value="Closed">Closed</option>
-            <option value="NTE">NTE</option>
-            <option value="NTW">NTW</option>
-            <option value="NTD">NTD</option>
-            <option value="AH">AH</option>
+
           </select>
 
           <input id="searchInput" placeholder="Search agent / file / date..." />
@@ -60,407 +59,115 @@
       </div>
 
       <div class="kpis" id="kpiContainer">
-        <div class="kpi card"><div class="val" id="kpiTotal">0</div><div class="muted">Total Reports</div></div>
-        <div class="kpi card"><div class="val" id="kpiOpen">0</div><div class="muted">Open</div></div>
-        <div class="kpi card"><div class="val" id="kpiPending">0</div><div class="muted">Pending</div></div>
-        <div class="kpi card"><div class="val" id="kpiClosed">0</div><div class="muted">Closed</div></div>
+        <div class="kpi card">
+          <div class="val" id="kpiTotal">0</div>
+          <div class="muted">Total Reports</div>
+        </div>
+        <div class="kpi card">
+          <div class="val" id="kpiOpen">0</div>
+          <div class="muted">Open</div>
+        </div>
+        <div class="kpi card">
+          <div class="val" id="kpiPending">0</div>
+          <div class="muted">Pending</div>
+        </div>
+        <div class="kpi card">
+          <div class="val" id="kpiClosed">0</div>
+          <div class="muted">Closed</div>
+        </div>
       </div>
 
       <div class="card">
         <h3 style="margin:0 0 8px">Incident Reports</h3>
         <table id="irTable" aria-live="polite">
           <thead>
-            <tr><th>Agent</th><th>File</th><th>Date</th><th>Area</th><th>Status</th><th>Actions</th></tr>
+            <tr>
+              <th>Agent</th>
+              <th>Transcode</th>
+              <th>File</th>
+              <th>Date</th>
+              <th>Area</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody id="irTbody"></tbody>
         </table>
-      </div>
+        <div class="modal" id="irModal" aria-hidden="true">
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="irModalTitle">
+            <h3 id="irModalTitle">Add Incident Report</h3>
+            <form id="irForm">
+              <input type="hidden" id="ir_record_id" />
+              <div class="modal-grid">
+                <div>
+                  <div class="modal-row">
+                    <label for="ir_agent">Agent name</label>
+                    <input id="ir_agent" required />
+                  </div>
+                  <div class="modal-row">
+                    <label for="ir_area">Area (select)</label>
+                    <select id="ir_area" required>
+                      <option value="MDN">Mag Norte</option>
+                      <option value="MDS">Mag Sur</option>
+                      <option value="LDN">Lanao Del Norte</option>
+                      <option value="LDS">Lanao Del Sur</option>
+                      <option value="COT">Cotabato</option>
+                    </select>
+                  </div>
+                  <div class="modal-row">
+                    <label for="ir_date">Date Posted</label>
+                    <input id="ir_date" type="date" required />
+                  </div>
+                </div>
+                <div>
+                  <div class="modal-row">
+                    <label for="ir_status">Status</label>
+                    <select id="ir_status" required>
+                      <option value="">Select status</option>
+                      <option>Open</option>
+                      <option>Pending</option>
+                      <option>Closed</option>
 
-   
-       
+                    </select>
+                  </div>
 
-  <!-- INCIDENT MODAL -->
-  <div class="modal" id="irModal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="irModalTitle">
-      <h3 id="irModalTitle">Add Incident Report</h3>
-      <form id="irForm">
-        <input type="hidden" id="ir_record_id" />
-        <div class="modal-grid">
-          <div>
-            <div class="modal-row">
-              <label for="ir_agent">Agent name</label>
-              <input id="ir_agent" required />
-            </div>
-            <div class="modal-row">
-              <label for="ir_area">Area (select)</label>
-              <select id="ir_area" required>
-                <option value="ir_mag_norte">Mag Norte</option>
-                <option value="ir_mag_sur">Mag Sur</option>
-                <option value="ir_ldn">Lanao Del Norte</option>
-                <option value="ir_lds">Lanao Del Sur</option>
-                <option value="ir_cot">Cotabato</option>
-              </select>
-            </div>
-            <div class="modal-row">
-              <label for="ir_date">Date Posted</label>
-              <input id="ir_date" type="date" required />
-            </div>
-          </div>
-          <div>
-            <div class="modal-row">
-              <label for="ir_status">Status</label>
-              <select id="ir_status" required>
-                <option value="">Select status</option>
-                <option>Open</option>
-                <option>Pending</option>
-                <option>Closed</option>
-                <option>NTE</option>
-                <option>NTW</option>
-                <option>NTD</option>
-                <option>AH</option>
-              </select>
-            </div>
+                  <div class="modal-row">
+                    <label for="ir_file">Attach file</label>
+                    <input id="ir_file" type="file" accept=".pdf,.doc,.docx,.jpg,.png" />
+                  </div>
 
-            <div class="modal-row">
-              <label for="ir_file">Attach file</label>
-              <input id="ir_file" type="file" accept=".pdf,.doc,.docx,.jpg,.png" />
-            </div>
+                  <div class="modal-row">
+                    <label>File preview</label>
+                    <div id="ir_file_preview" style="color:var(--muted);font-size:13px">No file selected</div>
+                  </div>
+                </div>
+              </div>
 
-            <div class="modal-row">
-              <label>File preview</label>
-              <div id="ir_file_preview" style="color:var(--muted);font-size:13px">No file selected</div>
-            </div>
+              <div class="modal-footer">
+                <button type="button" class="btn-ghost" id="irCancelBtn">Cancel</button>
+                <button type="submit" class="primary" id="irSaveBtn">Save</button>
+              </div>
+            </form>
           </div>
         </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn-ghost" id="irCancelBtn">Cancel</button>
-          <button type="submit" class="primary" id="irSaveBtn">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
 
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
-          <div id="caseSavedMsg" style="color:var(--success);font-weight:700;align-self:center;opacity:0;transition:opacity .2s">Status updated!</div>
+          <div id="caseSavedMsg"
+            style="color:var(--success);font-weight:700;align-self:center;opacity:0;transition:opacity .2s">Status
+            updated!</div>
 
           <button class="primary" id="caseSaveBtn" style="display:none">Save</button>
         </div>
       </div>
-    </div>
+  </div>
   </div>
 
   <div class="loader" id="loader">Loading...</div>
+  <script src="sales-script.js"></script>
+  <script>
 
-<script>
-/* =================== CONFIG (update if rotated) =================== */
-const SUPABASE_URL = 'https://hzafznqoyinfjbqrrerp.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* =================== ELEMENTS =================== */
-const loader = document.getElementById('loader');
-const areaFilter = document.getElementById('areaFilter');
-const statusFilter = document.getElementById('statusFilter');
-const searchInput = document.getElementById('searchInput');
-const addIrBtn = document.getElementById('addIrBtn');
-const refreshBtn = document.getElementById('refreshBtn');
-
-const irModal = document.getElementById('irModal');
-const irForm = document.getElementById('irForm');
-const ir_record_id = document.getElementById('ir_record_id');
-const ir_agent = document.getElementById('ir_agent');
-const ir_area = document.getElementById('ir_area');
-const ir_date = document.getElementById('ir_date');
-const ir_status = document.getElementById('ir_status');
-const ir_file = document.getElementById('ir_file');
-const ir_file_preview = document.getElementById('ir_file_preview');
-const irCancelBtn = document.getElementById('irCancelBtn');
-const irSaveBtn = document.getElementById('irSaveBtn');
-
-const irTbody = document.getElementById('irTbody');
-
-const kpiTotal = document.getElementById('kpiTotal');
-const kpiOpen = document.getElementById('kpiOpen');
-const kpiPending = document.getElementById('kpiPending');
-const kpiClosed = document.getElementById('kpiClosed');
-
-
-
-/* Area table mapping */
-const AREA_MAP = {
-  ir_mag_norte: 'Mag Norte',
-  ir_mag_sur: 'Mag Sur',
-  ir_ldn: 'Lanao Del Norte',
-  ir_lds: 'Lanao Del Sur',
-  ir_cot: 'Cotabato'
-};
-
-/* =================== UTIL =================== */
-function showLoader(txt='Loading...'){ loader.textContent = txt; loader.style.display = 'block'; }
-function hideLoader(){ loader.style.display = 'none'; }
-function escapeHtml(str){ if (!str && str !== 0) return ''; return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-function formatDate(d){ if(!d) return ''; const dt = new Date(d); if (isNaN(dt)) return d; return dt.toLocaleDateString(); }
-
-/* =================== INCIDENTS: multi-table fetch & CRUD =================== */
-
-/*
-  We'll fetch from the 5 area tables. If areaFilter === 'all', fetch all and combine.
-  Each row returned is normalized with { area_table, area_label } so UI knows the source.
-*/
-
-async function fetchIRs(area='all'){
-  showLoader('Loading incident reports...');
-  irTbody.innerHTML = '';
-  const tables = [
-    { name: 'ir_mag_norte', label: AREA_MAP.ir_mag_norte },
-    { name: 'ir_mag_sur', label: AREA_MAP.ir_mag_sur },
-    { name: 'ir_ldn', label: AREA_MAP.ir_ldn },
-    { name: 'ir_lds', label: AREA_MAP.ir_lds },
-    { name: 'ir_cot', label: AREA_MAP.ir_cot }
-  ];
-
-  try {
-    let results = [];
-    if (area === 'all') {
-      // parallel fetch
-      const promises = tables.map(t => supabase.from(t.name).select('*'));
-      const settled = await Promise.all(promises);
-      settled.forEach((res, idx) => {
-        const { data, error } = res;
-        if (!error && Array.isArray(data)) {
-          results = results.concat(data.map(r => ({ ...r, area_table: tables[idx].name, area_label: tables[idx].label })));
-        } // ignore errors per-area but log
-      });
-    } else {
-      const tbl = tables.find(t => t.name === area);
-      if (!tbl) { hideLoader(); alert('Invalid area'); return; }
-      const { data, error } = await supabase.from(tbl.name).select('*');
-      if (error) throw error;
-      results = data.map(r => ({ ...r, area_table: tbl.name, area_label: tbl.label }));
-    }
-
-    // apply client-side filters and search
-    const search = (searchInput.value||'').trim().toLowerCase();
-    const statusF = statusFilter.value;
-    const areaF = areaFilter.value;
-
-    let filtered = results.filter(r => {
-      // search across agent, file_name, date_posted
-      const hay = `${r.agent_name||''} ${r.file_name||''} ${r.date_posted||''}`.toLowerCase();
-      if (search && !hay.includes(search)) return false;
-      if (statusF !== 'all' && statusF) {
-        if ((r.status||'').toString().toLowerCase() !== statusF.toLowerCase()) return false;
-      }
-      return true;
-    });
-
-    // Sort newest-first by date_posted if available or created_at
-    filtered.sort((a,b) => new Date(b.date_posted || b.created_at || 0) - new Date(a.date_posted || a.created_at || 0));
-
-    // render rows
-    if (filtered.length === 0) {
-      irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No incident reports</td></tr>`;
-    } else {
-      filtered.forEach(r => {
-        const tr = document.createElement('tr');
-        const fileCell = r.file_url ? `<a href="${escapeHtml(r.file_url)}" target="_blank">${escapeHtml(r.file_name||'file')}</a>` : '';
-        tr.innerHTML = `
-          <td>${escapeHtml(r.agent_name||'')}</td>
-          <td>${fileCell}</td>
-          <td>${formatDate(r.date_posted)}</td>
-          <td>${escapeHtml(r.area_label||r.area_table||'')}</td>
-          <td><span class="status-badge">${escapeHtml(r.status||'')}</span></td>
-          <td class="actions">
-             <button class="btn-ghost" data-action="edit" data-id="${escapeHtml(r.id)}" data-table="${escapeHtml(r.area_table)}">Edit</button>
-             <button class="btn-ghost" data-action="delete" data-id="${escapeHtml(r.id)}" data-table="${escapeHtml(r.area_table)}">Delete</button>
-             ${r.file_url ? `<button class="btn-ghost" data-action="view" data-url="${escapeHtml(r.file_url)}">View</button>` : ''}
-          </td>
-        `;
-        irTbody.appendChild(tr);
-      });
-    }
-
-    updateKPIs(results);
-    hideLoader();
-  } catch (err) {
-    console.error('fetchIRs', err);
-    hideLoader();
-    irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">Error loading data</td></tr>`;
-  }
-}
-
-function updateKPIs(allRows){
-  const total = allRows.length;
-  const open = allRows.filter(r => String(r.status||'').toLowerCase() === 'open').length;
-  const pending = allRows.filter(r => String(r.status||'').toLowerCase() === 'pending').length;
-  const closed = allRows.filter(r => String(r.status||'').toLowerCase() === 'closed').length;
-
-  kpiTotal.textContent = total;
-  kpiOpen.textContent = open;
-  kpiPending.textContent = pending;
-  kpiClosed.textContent = closed;
-}
-
-/* Open modal for creating or editing (edit requires passing table+id) */
-function openIrModal({ table=null, record=null } = {}){
-  ir_form_reset();
-  if (record && table) {
-    // populate fields
-    ir_record_id.value = record.id;
-    ir_agent.value = record.agent_name || '';
-    ir_area.value = table; // pre-select the table/area
-    ir_date.value = record.date_posted ? new Date(record.date_posted).toISOString().split('T')[0] : '';
-    ir_status.value = record.status || '';
-    ir_file_preview.textContent = record.file_name ? `${record.file_name}` : 'No file attached';
-    irModal.classList.add('show');
-  } else {
-    // create mode: use current areaFilter if not 'all'
-    if (areaFilter.value !== 'all') ir_area.value = areaFilter.value;
-    irModal.classList.add('show');
-  }
-}
-function closeIrModal(){ irModal.classList.remove('show'); ir_form_reset(); }
-
-function ir_form_reset(){
-  irForm.reset();
-  ir_record_id.value = '';
-  ir_file_preview.textContent = 'No file selected';
-}
-
-/* Save (create or update) - handles file upload */
-irForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  irSaveBtn.disabled = true; irSaveBtn.textContent = 'Saving...';
-  showLoader('Saving incident...');
-  try {
-    const recId = ir_record_id.value;
-    const payload = {
-      agent_name: ir_agent.value,
-      area: ir_area.value,
-      date_posted: ir_date.value,
-      status: ir_status.value,
-    };
-
-    // file upload if present
-    const file = ir_file.files[0];
-    let file_name = null, file_url = null;
-    if (file) {
-      // store under bucket 'incident_reports' path: <area>/<timestamp>-filename
-      const bucket = 'incident_reports_sales';
-      const path = `${payload.area}/${Date.now()}_${file.name}`;
-      const { error: uploadErr } = await supabase.storage.from(bucket).upload(path, file);
-      if (uploadErr) throw uploadErr;
-      const { data: publicURL } = supabase.storage.from(bucket).getPublicUrl(path);
-      file_name = file.name;
-      file_url = publicURL.publicUrl;
-      payload.file_name = file_name;
-      payload.file_url = file_url;
-    }
-
-    // write to the selected area table (table name is the area value)
-    const targetTable = payload.area;
-    if (!targetTable) throw new Error('Area/table not selected');
-
-    if (recId) {
-      // update
-      const { error } = await supabase.from(targetTable).update(payload).eq('id', recId);
-      if (error) throw error;
-    } else {
-      // insert
-      const { error } = await supabase.from(targetTable).insert([payload]);
-      if (error) throw error;
-    }
-
-    await fetchIRs(areaFilter.value);
-    closeIrModal();
-  } catch (err) {
-    console.error('save IR', err);
-    alert('Error saving incident. Check console for details.');
-  } finally {
-    hideLoader();
-    irSaveBtn.disabled = false; irSaveBtn.textContent = 'Save';
-  }
-});
-
-/* IR table actions (edit/delete/view) via event delegation */
-irTbody.addEventListener('click', async (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  const action = btn.dataset.action;
-  if (action === 'view') {
-    const url = btn.dataset.url;
-    if (url) window.open(url, '_blank');
-    return;
-  }
-
-  const id = btn.dataset.id;
-  const table = btn.dataset.table;
-  if (!id || !table) return;
-
-  if (action === 'edit') {
-    showLoader('Loading report...');
-    const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
-    hideLoader();
-    if (error) { console.error(error); alert('Error loading report'); return; }
-    openIrModal({ table, record: data });
-    return;
-  }
-
-  if (action === 'delete') {
-    if (!confirm('Delete this report? This cannot be undone.')) return;
-    try {
-      showLoader('Deleting...');
-      const { error } = await supabase.from(table).delete().eq('id', id);
-      hideLoader();
-      if (error) throw error;
-      await fetchIRs(areaFilter.value);
-    } catch (err) {
-      hideLoader(); console.error(err); alert('Error deleting report');
-    }
-    return;
-  }
-});
-
-/* File input preview text */
-ir_file.addEventListener('change', (e) => {
-  ir_file_preview.textContent = e.target.files[0] ? e.target.files[0].name : 'No file selected';
-});
-
-/* open create modal */
-addIrBtn.addEventListener('click', () => openIrModal());
-
-irCancelBtn.addEventListener('click', closeIrModal);
-document.getElementById('refreshBtn').addEventListener('click', () => fetchIRs(areaFilter.value));
-
-/* Search / Filter controls */
-areaFilter.addEventListener('change', () => fetchIRs(areaFilter.value));
-statusFilter.addEventListener('change', () => fetchIRs(areaFilter.value));
-searchInput.addEventListener('input', debounce(() => fetchIRs(areaFilter.value), 300));
-
-
-
-
-
-
-/* =================== Small helpers =================== */
-function debounce(fn, wait=200){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), wait); }}
-
-/* =================== Init =================== */
-(async function init(){
-  try {
-    // initial table load: fetch all
-    await fetchIRs('all');
-
-  } catch (err) {
-    console.error('init', err);
-  }
-})();
-
-/* logout */
-document.getElementById('logoutBtn').addEventListener('click', ()=>{ sessionStorage.clear(); window.location.href = 'index.html'; });
-
-</script>
+  </script>
 </body>
+
 </html>
