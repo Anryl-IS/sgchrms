@@ -188,3 +188,13 @@ window.deleteReport = deleteReport;
 
 
 loadReports();
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    sessionStorage.clear();
+
+    window.location.href = "index.html";
+  });
+
