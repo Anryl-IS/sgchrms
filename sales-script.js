@@ -83,14 +83,14 @@ async function saveReport(e) {
 
     const { error: uploadError } = await supabaseClient
       .storage
-      .from("incident_files")
+      .from("incident_reports_sales")
       .upload(path, file);
 
     if (uploadError) return console.error("Upload failed:", uploadError);
 
     uploadedUrl = supabaseClient
       .storage
-      .from("incident_files")
+      .from("incident_reports_Sales")
       .getPublicUrl(path).data.publicUrl;
   }
 
