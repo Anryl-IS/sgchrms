@@ -122,7 +122,7 @@ body {
 main {
     display: flex;
     flex-direction: column;
-    gap: 60px;
+    gap: 100px;
 
 
 
@@ -409,8 +409,3 @@ label {
     }
 }
 
-/* Hide the 2nd column (File) in the table */
-#irTable th:nth-child(2),
-#irTable td:nth-child(2) {
-    display: none;
-}
