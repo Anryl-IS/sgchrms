@@ -77,22 +77,25 @@
         </div>
       </div>
 
-      <div class="card">
-        <h3 style="margin:0 0 8px">Incident Reports</h3>
-        <table id="irTable" aria-live="polite">
-          <thead>
-            <tr>
-              <th>Agent</th>
-              <th>Transcode</th>
-              <th>File</th>
-              <th>Date</th>
-              <th>Area</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="irTbody"></tbody>
-        </table>
+   <div class="table-container">
+  <table id="irTable">
+    <thead>
+      <tr>
+        <th>Agent</th>
+        <th>Transcode</th>
+        <th>File</th>
+        <th>Date</th>
+        <th>Area</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="irTbody">
+   
+    </tbody>
+  </table>
+</div>
+
         <div class="modal" id="irModal" aria-hidden="true">
           <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="irModalTitle">
             <h3 id="irModalTitle">Add Incident Report</h3>
@@ -150,7 +153,7 @@
             </form>
           </div>
         </div>
-
+       
 
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
           <div id="caseSavedMsg"
@@ -163,7 +166,10 @@
   </div>
   </div>
 
-  <div class="loader" id="loader">Loading...</div>
+
+  <div id="uploadLoader" class="loader" style="display:none;"></div>
+
+  
   <script src="sales-script.js"></script>
   <script>
 
