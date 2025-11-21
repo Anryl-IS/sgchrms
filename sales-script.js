@@ -54,7 +54,7 @@ async function loadReports() {
   kpiPending.textContent = data.filter(r => r.status === "Pending").length;
   kpiClosed.textContent = data.filter(r => r.status === "Closed").length;
 
-irTbody.innerHTML = data.map(r => `
+  irTbody.innerHTML = data.map(r => `
   <tr>
     <td>${r.agent_name}</td>
     <td>${r.transcode || ""}</td>
@@ -86,11 +86,12 @@ async function saveReport(e) {
       .from("incident_reports_sales")
       .upload(path, file);
 
+      
     if (uploadError) return console.error("Upload failed:", uploadError);
 
     uploadedUrl = supabaseClient
       .storage
-      .from("incident_reports_Sales")
+      .from("incident_reports_sales")
       .getPublicUrl(path).data.publicUrl;
   }
 
@@ -189,12 +190,28 @@ window.deleteReport = deleteReport;
 
 loadReports();
 
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+document.getElementById("logoutBtn").addEventListener("click", () => {
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    sessionStorage.clear();
+  localStorage.removeItem("user");
+  localStorage.removeItem("role");
+  sessionStorage.clear();
 
-    window.location.href = "index.html";
+  window.location.href = "index.html";
+});
+
+const searchInput = document.getElementById("searchInput");
+
+searchInput.addEventListener("input", () => {
+  const filter = searchInput.value.toLowerCase();
+
+  const rows = irTbody.querySelectorAll("tr");
+  rows.forEach(row => {
+    const cellsText = Array.from(row.cells)
+      .map(cell => cell.textContent.toLowerCase())
+      .join(" ");
+
+    row.style.display = cellsText.includes(filter) ? "" : "none";
   });
+});
+
 
