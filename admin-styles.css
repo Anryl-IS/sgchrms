@@ -1,4 +1,4 @@
-/* ===== iOS INSPIRED LOGIN STYLE ===== */
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Roboto, sans-serif;
   margin: 0;
@@ -13,7 +13,7 @@ body {
   color-scheme: dark;
 }
 
-/* Subtle overlay tint + glass blur for that iOS depth */
+
 body::before {
   content: "";
   position: absolute;
@@ -24,7 +24,7 @@ body::before {
   z-index: 0;
 }
 
-/* ===== LOGIN CONTAINER ===== */
+
 .login-container {
   display: flex;
   background: rgba(44, 44, 46, 0.35);
@@ -47,7 +47,7 @@ body::before {
   box-shadow: 0 35px 70px rgba(0, 0, 0, 0.55);
 }
 
-/* ===== LEFT SIDE ===== */
+
 .left-side {
   text-align: center;
   flex: 1;
@@ -81,7 +81,7 @@ h1 {
   letter-spacing: 0.4px;
 }
 
-/* ===== RIGHT SIDE ===== */
+
 .right-side {
   flex: 1.5;
   display: flex;
@@ -89,7 +89,7 @@ h1 {
   align-items: center;
 }
 
-/* Inputs: rounded, glossy, minimal */
+
 form {
   display: flex;
   flex-direction: column;
@@ -120,7 +120,7 @@ form input:focus {
   box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
 }
 
-/* Buttons: Apple-blue gradient & subtle depth */
+
 form button {
   padding: 15px;
   border-radius: 20px;
@@ -140,7 +140,7 @@ form button:hover {
   box-shadow: 0 8px 20px rgba(10, 132, 255, 0.5);
 }
 
-/* ===== MESSAGES ===== */
+
 .error-msg {
   color: #ff453a;
   font-size: 14px;
@@ -162,7 +162,7 @@ form button:hover {
   text-align: center;
 }
 
-/* ===== LOADING OVERLAY ===== */
+
 #loadingOverlay {
   position: fixed;
   inset: 0;
@@ -200,7 +200,7 @@ form button:hover {
   animation: fadeIn 1.2s infinite alternate;
 }
 
-/* ===== ANIMATIONS ===== */
+
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -243,8 +243,27 @@ form button:hover {
 
 
 
+
+#loadingOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(22, 22, 24, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    
+
+    display: flex;  
+    flex-direction: column; 
+    justify-content: center;  
+    align-items: center; 
+
+}
 #loadingOverlay.active {
-  display: block;
+    opacity: 1;
+    pointer-events: all;
 }
 
 .error-msg {
@@ -257,7 +276,7 @@ form button:hover {
   display: block;
 }
 
-/* ===== RESPONSIVE ===== */
+
 @media (max-width: 700px) {
   .login-container {
     flex-direction: column;
