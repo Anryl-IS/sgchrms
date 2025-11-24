@@ -149,83 +149,54 @@
       fetchIRs(selected);
     });
 
-    async function fetchIRs(area = 'all') {
-      showLoader('Loading incident reports...');
-      irTbody.innerHTML = '';
+async function fetchIRs(area = 'all') {
+  showLoader('Loading incident reports...');
+  irTbody.innerHTML = '';
 
-      const tables = [
-        { name: 'ir_mag_norte', label: 'Mag Norte' },
-        { name: 'ir_mag_sur', label: 'Mag Sur' },
-        { name: 'ir_ldn', label: 'Lanao Del Norte' },
-        { name: 'ir_lds', label: 'Lanao Del Sur' },
-        { name: 'ir_cot', label: 'Cotabato' }
-      ];
+  try {
+    let query = supabase
+      .from('ir_cases')
+      .select('*')
+      .order('date_posted', { ascending: false });
 
-      let allData = [];
-
-      try {
-        if (area === 'all') {
-    
-          const fetchPromises = tables.map(async t => {
-            const { data, error } = await supabase
-              .from(t.name)
-              .select('*')
-              .order('date_posted', { ascending: false });
-            if (!error && data) {
-              return data.map(d => ({ ...d, area_label: t.label }));
-            }
-            return [];
-          });
-
-          const results = await Promise.all(fetchPromises);
-          allData = results.flat();
-        } else {
-
-          const selectedTable = tables.find(t => t.name === area);
-          if (!selectedTable) {
-            hideLoader();
-            alert('Invalid area selected.');
-            return;
-          }
-
-          const { data, error } = await supabase
-            .from(selectedTable.name)
-            .select('*')
-            .order('date_posted', { ascending: false });
-
-          if (error) throw error;
-          allData = data.map(d => ({ ...d, area_label: selectedTable.label }));
-        }
-
-        hideLoader();
-
-        if (allData.length === 0) {
-          irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No Incident Reports</td></tr>`;
-          return;
-        }
-
-        allData.sort((a, b) => new Date(b.date_posted) - new Date(a.date_posted));
-
-        allData.forEach(ir => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-        <td>${escapeHtml(ir.agent_name || '')}</td>
-        <td>${ir.file_name ? `<a href="${ir.file_url}" target="_blank">${escapeHtml(ir.file_name)}</a>` : ''}</td>
-        <td>${ir.date_posted ? new Date(ir.date_posted).toLocaleDateString() : ''}</td>
-        <td>${escapeHtml(ir.area_label || '')}</td>
-        <td>${escapeHtml(ir.status || '')}</td>
-        <td>
-          ${ir.file_url ? `<button class="action-btn view" data-url="${ir.file_url}">View</button>` : ''}
-        </td>
-      `;
-          irTbody.appendChild(tr);
-        });
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Error loading data.</td></tr>`;
-      }
+    if (area !== 'all') {
+      query = query.eq('area', area);
     }
+
+    const { data, error } = await query;
+    hideLoader();
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No Incident Reports</td></tr>`;
+      return;
+    }
+
+  data.forEach(ir => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${escapeHtml(ir.transcode || '')}</td>
+    <td>${escapeHtml(ir.agent_name || '')}</td>
+    <td>${ir.file_name ? `<a href="${ir.file_url}" target="_blank">${escapeHtml(ir.file_name)}</a>` : ''}</td>
+    <td>${ir.date_posted ? new Date(ir.date_posted).toLocaleDateString() : ''}</td>
+    <td>${escapeHtml(ir.area || '')}</td>
+    <td>${escapeHtml(ir.status || '')}</td>
+    <td>
+      ${ir.file_url ? `<button class="action-btn view" data-url="${ir.file_url}">View</button>` : ''}
+    </td>
+  `;
+  irTbody.appendChild(tr);
+});
+
+  } catch (err) {
+    hideLoader();
+    console.error(err);
+    irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Error loading data.</td></tr>`;
+  }
+}
+
+
 
     fetchIRs();
 
