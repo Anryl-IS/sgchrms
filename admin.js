@@ -1,520 +1,145 @@
+document.addEventListener("DOMContentLoaded", () => {
+  // ======== Supabase Setup ========
+  const { createClient } = supabase;
+  const supabaseClient = createClient(
+    "https://hzafznqoyinfjbqrrerp.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8"
+  );
 
-    const SUPABASE_URL = 'https://hzafznqoyinfjbqrrerp.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let editingEmployeeId = null;
+  const IR_TABLE = "ir_cases";
 
+  // ======== DOM Elements ========
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const empModal = document.getElementById("empModal"); 
+  const dbTbody = document.getElementById("dbTbody");
+  const reportsTbody = document.getElementById("reportsTbody");
+  const irModal = document.getElementById("irModal");
+  const irForm = document.getElementById("irForm");
+  const closeEmpBtn = document.getElementById("closeEmpBtn");
+  const closeEmpModal = document.getElementById("closeEmpModal");
+  const closeIRModalBtn = document.getElementById("closeModalBtn");
 
-    const loader = document.getElementById('loader');
-    const loaderTxt = document.getElementById('loaderTxt');
-
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.tab-content');
-
-    const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.addEventListener('click', () => {
-      sessionStorage.clear();
-      window.location.href = 'index.html';
-    });
-
-  
-    tabBtns.forEach(btn => btn.addEventListener('click', () => {
+  // ======== 1. TAB SWITCHING LOGIC ========
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
       tabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      contents.forEach(c => c.classList.remove('active'));
-      const id = btn.dataset.tab;
-      document.getElementById(id).classList.add('active');
-    }));
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+        if (content.id === targetTab) content.classList.add('active');
+      });
+    });
+  });
 
+  // ======== 2. EMPLOYEES LOGIC ========
+  async function loadEmployees() {
+    const { data, error } = await supabaseClient
+      .from("employees")
+      .select("*")
+      .order("name_english", { ascending: true });
 
-    if (!sessionStorage.getItem('loggedIn')) {
+    if (error) return console.error("Error loading employees:", error);
 
-      window.location.href = 'index.html';
+    dbTbody.innerHTML = data.map(e => {
+      // Safely stringify the employee object for the onclick event
+      const empData = JSON.stringify(e).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+      
+      return `
+        <tr class="clickable-row" style="cursor:pointer;" onclick="openEmployeeProfile(${empData})">
+          <td>${e.name_english || "N/A"}</td>
+          <td>${e.position || "N/A"}</td>
+          <td>${e.email || "N/A"}</td>
+          <td>${e.mobile || "N/A"}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // GLOBAL FUNCTION: Open Employee Profile Modal
+  window.openEmployeeProfile = (emp) => {
+    if (!empModal) return;
+
+    // Set Photo
+    const photo = document.getElementById("empPhoto");
+    if (photo) photo.src = emp.photo_url || "https://i.imgur.com/6SF5KQG.png";
+
+    // Map fields to IDs
+    const fields = {
+      "emp_name_english": emp.name_english,
+      "emp_name_chinese": emp.name_chinese,
+      "emp_position": emp.position,
+      "emp_sex": emp.sex,
+      "emp_blood_type": emp.blood_type,
+      "emp_email": emp.email,
+      "emp_mobile": emp.mobile,
+      "emp_id_card": emp.id_card,
+      "emp_dob": emp.dob
+    };
+
+    // Update text content for each ID found in HTML
+    for (const [id, value] of Object.entries(fields)) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value || "-";
     }
 
-    const irTbody = document.getElementById('irTbody');
-    const addBtn = document.getElementById('addIRBtn');
-    const modal = document.getElementById('irModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const form = document.getElementById('irForm');
-    const saveBtn = document.getElementById('saveBtn');
-    const fileInput = document.getElementById('file');
-    const filePreview = document.getElementById('filePreview');
-    const modalTitle = document.getElementById('modalTitle');
-    const irIdInput = document.getElementById('irId');
+    empModal.style.display = "flex";
+  };
 
-    addBtn.addEventListener('click', () => openModal());
-    closeModalBtn.addEventListener('click', () => modal.classList.remove('show'));
-
-    irTbody.addEventListener('click', async e => {
-      const id = e.target.dataset.id;
-      if (e.target.classList.contains('edit')) {
-        showLoader('Loading report...');
-        const { data, error } = await supabase.from('incident_reports_salesforce').select('*').eq('id', id).single();
-        hideLoader();
-        if (error) { alert('Error loading report'); return; }
-        openModal(true, data);
-      }
-      if (e.target.classList.contains('delete')) {
-        if (confirm('Delete this report?')) {
-          showLoader('Deleting...');
-          await supabase.from('incident_reports_salesforce').delete().eq('id', id);
-          hideLoader();
-          fetchIRs();
-        }
-      }
-      if (e.target.classList.contains('view')) {
-        window.open(e.target.dataset.url, '_blank');
-      }
-    });
-
-    function openModal(edit = false, ir = null) {
-      modal.classList.add('show');
-      if (edit && ir) {
-        modalTitle.textContent = 'Edit Incident Report';
-        irIdInput.value = ir.id;
-        document.getElementById('agent_name').value = ir.agent_name || '';
-        document.getElementById('area').value = ir.area || '';
-        document.getElementById('date_posted').value = ir.date_posted ? new Date(ir.date_posted).toISOString().split('T')[0] : '';
-        document.getElementById('status').value = ir.status || '';
-        filePreview.innerHTML = ir.file_name ? `<a href="${ir.file_url}" target="_blank">${ir.file_name}</a>` : '';
-      } else {
-        modalTitle.textContent = 'Add Incident Report';
-        form.reset();
-        irIdInput.value = '';
-        filePreview.innerHTML = '';
-      }
-    }
-
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Saving...';
-
-      const agent_name = document.getElementById('agent_name').value;
-      const area = document.getElementById('area').value;
-      const date_posted = document.getElementById('date_posted').value;
-      const status = document.getElementById('status').value;
-      const file = fileInput.files[0];
-
-      let file_name = '';
-      let file_url = '';
-
-      try {
-        showLoader('Uploading file...');
-        if (file) {
-          file_name = `${Date.now()}_${file.name}`;
-          const { error: uploadError } = await supabase.storage
-            .from('incident_reports_sales')
-            .upload(file_name, file);
-          if (uploadError) {
-            hideLoader();
-            alert('File upload failed!');
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
-            return;
-          }
-          const { data: publicURL } = supabase.storage
-            .from('incident_reports_sales')
-            .getPublicUrl(file_name);
-          file_url = publicURL.publicUrl;
-        }
-
-        const payload = { agent_name, area, date_posted, status, file_name, file_url };
-
-        if (irIdInput.value) {
-          await supabase.from('incident_reports_salesforce').update(payload).eq('id', irIdInput.value);
-        } else {
-          await supabase.from('incident_reports_salesforce').insert([payload]);
-        }
-
-        hideLoader();
-        modal.classList.remove('show');
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save';
-        fetchIRs();
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        alert('Error saving incident. Check console.');
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save';
-      }
-    });
-
-    const filterBtn = document.getElementById('filterBtn');
-    const areaFilter = document.getElementById('areaFilter');
-
-    filterBtn.addEventListener('click', () => {
-      const selected = areaFilter.value;
-      fetchIRs(selected);
-    });
-
-async function fetchIRs(area = 'all') {
-  showLoader('Loading incident reports...');
-  irTbody.innerHTML = '';
-
-  try {
-    let query = supabase
-      .from('ir_cases')
+  // ======== 3. INCIDENT REPORTS LOGIC ========
+  async function fetchIRs() {
+    if (!reportsTbody) return;
+    const { data, error } = await supabaseClient
+      .from(IR_TABLE)
       .select('*')
       .order('date_posted', { ascending: false });
 
-    if (area !== 'all') {
-      query = query.eq('area', area);
-    }
+    if (error) return console.error("Error fetching IRs:", error);
 
-    const { data, error } = await query;
-    hideLoader();
-
-    if (error) throw error;
-
-    if (!data || data.length === 0) {
-      irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No Incident Reports</td></tr>`;
-      return;
-    }
-
-  data.forEach(ir => {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${escapeHtml(ir.transcode || '')}</td>
-    <td>${escapeHtml(ir.agent_name || '')}</td>
-    <td>${ir.file_name ? `<a href="${ir.file_url}" target="_blank">${escapeHtml(ir.file_name)}</a>` : ''}</td>
-    <td>${ir.date_posted ? new Date(ir.date_posted).toLocaleDateString() : ''}</td>
-    <td>${escapeHtml(ir.area || '')}</td>
-    <td>${escapeHtml(ir.status || '')}</td>
-    <td>
-      ${ir.file_url ? `<button class="action-btn view" data-url="${ir.file_url}">View</button>` : ''}
-    </td>
-  `;
-  irTbody.appendChild(tr);
-});
-
-  } catch (err) {
-    hideLoader();
-    console.error(err);
-    irTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Error loading data.</td></tr>`;
-  }
-}
-
-
-
-    fetchIRs();
-
-
-    const caseTbody = document.getElementById('caseTbody');
-    const caseForm = document.getElementById('caseForm');
-    const caseModal = document.getElementById('caseModal');
-    const closeCaseModal = document.getElementById('closeCaseModal');
-    const cancelCaseBtn = document.getElementById('cancelCaseBtn');
-    const saveCaseBtn = document.getElementById('saveCaseBtn');
-    const savedMsg = document.getElementById('savedMsg');
-    const detail_case_name = document.getElementById('detail_case_name');
-    const detail_area = document.getElementById('detail_area');
-    const detail_employees = document.getElementById('detail_employees');
-    const detail_officer = document.getElementById('detail_officer');
-    const detail_STATUS = document.getElementById('detail_STATUS');
-    const detail_file_link = document.getElementById('detail_file_link');
-
-
-    let currentCase = null;
-    let originalStatus = null;
-    let employeesCache = [];
-
-    async function loadCases() {
-      showLoader('Loading cases...');
-      try {
-        const { data, error } = await supabase
-          .from('cases') 
-          .select('*')
-          .order('id', { ascending: false });
-
-        hideLoader();
-
-        if (error) {
-          console.error('Error loading cases:', error);
-          caseTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          caseTbody.innerHTML = `<tr><td colspan="4">No cases found.</td></tr>`;
-          return;
-        }
-
-        caseTbody.innerHTML = '';
-        data.forEach(row => {
-          const caseName = row.case_name ?? row.CASE_NAME ?? '';
-          const area = row.area ?? row.AREA ?? '';
-          const status = (row.status ?? row.status ?? 'OPEN');
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${escapeHtml(caseName)}</td><td>${escapeHtml(area)}</td><td>${escapeHtml(status)}</td>
+    reportsTbody.innerHTML = data.map(ir => `
+      <tr>
+        <td>${ir.transaction_code || 'N/A'}</td>
+        <td>${ir.agent_name}</td>
+        <td>${ir.file_url ? `<a href="${ir.file_url}" target="_blank" style="color:#0a84ff;">View File</a>` : 'No File'}</td>
+        <td>${ir.date_posted}</td>
+        <td>${ir.area}</td>
+        <td><span class="status-pill">${ir.status}</span></td>
         <td>
-          <button class="action-btn view" data-id="${row.id}" data-type="open-case">Open</button>
-        </td>`;
+          <button class="action-btn" onclick="prepareIREdit(${ir.id})" style="background:#444;">Edit</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-          tr.onclick = () => openCaseModal(row);
-          const btn = tr.querySelector('button.view');
-          btn.addEventListener('click', (ev) => {
-            ev.stopPropagation();
-            openCaseModal(row);
-          });
-          caseTbody.appendChild(tr);
-        });
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        caseTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
-      }
+  window.prepareIREdit = async (id) => {
+    const { data } = await supabaseClient.from(IR_TABLE).select('*').eq('id', id).single();
+    if (data) {
+      document.getElementById('irId').value = data.id;
+      document.getElementById('agent_name').value = data.agent_name;
+      document.getElementById('area').value = data.area;
+      document.getElementById('date_posted').value = data.date_posted;
+      document.getElementById('status').value = data.status;
+      irModal.style.display = "flex";
     }
+  };
 
+  // ======== 4. MODAL CLOSING LOGIC ========
+  const closeModals = () => {
+    irModal.style.display = "none";
+    empModal.style.display = "none";
+  };
 
-    function openCaseModal(row) {
-      currentCase = row;
-      originalStatus = (row.STATUS ?? row.status ?? 'OPEN');
+  if(closeIRModalBtn) closeIRModalBtn.onclick = closeModals;
+  if(closeEmpBtn) closeEmpBtn.onclick = closeModals;
+  if(closeEmpModal) closeEmpModal.onclick = closeModals;
 
-      detail_case_name.textContent = row.case_name ?? row.CASE_NAME ?? '';
-      detail_area.textContent = row.area ?? row.AREA ?? '';
-      detail_employees.textContent = row.employees ?? row.EMPLOYEES ?? '';
-      detail_officer.textContent = row.officer ?? row.OFFICER ?? '';
+  window.onclick = (event) => {
+    if (event.target == irModal || event.target == empModal) closeModals();
+  };
 
-
-      const docsUrl = row.supporting_docs ?? ''; // Assuming 'supporting_docs' holds the file URL
-      const caseName = row.case_name ?? row.CASE_NAME ?? 'Case Document'; // Use case name for link text
-
-      if (docsUrl) {
-        detail_file_link.innerHTML = `<a href="${docsUrl}" target="_blank" style="color:#0a84ff; text-decoration:underline;">View ${escapeHtml(caseName)} Documents</a>`;
-      } else {
-        detail_file_link.textContent = 'No file attached.';
-      }
-
-
-      const cur = String(originalStatus).toUpperCase();
-      detail_STATUS.value = ['OPEN', 'NTE', 'AH', 'NTW', 'NTD'].includes(cur) ? cur : 'OPEN';
-
-      saveCaseBtn.style.display = 'none';
-      savedMsg.style.opacity = 0;
-
-      caseModal.classList.add('show');
-    }
-
-
-    detail_STATUS.addEventListener('change', () => {
-      const newVal = detail_STATUS.value;
-      if (!originalStatus) originalStatus = (currentCase?.STATUS ?? currentCase?.status ?? 'OPEN');
-      if (String(newVal).toUpperCase() !== String(originalStatus).toUpperCase()) {
-        saveCaseBtn.style.display = 'inline-block';
-      } else {
-        saveCaseBtn.style.display = 'none';
-      }
-    });
-
-    saveCaseBtn.addEventListener('click', async () => {
-      if (!currentCase) return;
-
-      const newStatus = detail_STATUS.value;
-
-      showLoader('Saving status...');
-
-      try {
-        const { error } = await supabase
-          .from('cases')
-          .update({ status: newStatus })
-          .eq('id', currentCase.id);
-
-        hideLoader();
-
-        if (error) {
-          console.error(error);
-          alert('Failed to update status.');
-          return;
-        }
-
-   
-        savedMsg.style.opacity = 1;
-        saveCaseBtn.style.display = 'none';
-        originalStatus = newStatus;
-
-   
-        loadCases();
-
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        alert('Unexpected error, check console.');
-      }
-    });
-
-
-    closeCaseModal.addEventListener('click', () => {
-      caseModal.classList.remove('show');
-      currentCase = null;
-      originalStatus = null;
-    });
-    cancelCaseBtn.addEventListener('click', () => {
-      caseModal.classList.remove('show');
-      currentCase = null;
-      originalStatus = null;
-    });
-
-    caseForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const newCase = {
-        case_name: document.getElementById('case_name').value,
-        area: document.getElementById('case_area').value,
-        employees: document.getElementById('case_employees').value,
-        officer: document.getElementById('case_officer').value,
-        STATUS: 'OPEN'
-      };
-
-      try {
-        showLoader('Adding case...');
-        const { error } = await supabase.from('cases').insert([newCase]);
-        hideLoader();
-        if (error) {
-          console.error('Insert error:', error);
-          alert('Error adding case: ' + error.message);
-          return;
-        }
-        caseForm.reset();
-        await loadCases();
-        // auto-switch to case tab to show result
-        document.querySelector('.tab-btn[data-tab="caseTab"]').click();
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        alert('Error adding case. Check console.');
-      }
-    };
-
-  
-    const dbTbody = document.getElementById('dbTbody');
-    const empSearch = document.getElementById('empSearch');
-    const empModal = document.getElementById('empModal');
-    const closeEmpModal = document.getElementById('closeEmpModal');
-    const closeEmpBtn = document.getElementById('closeEmpBtn');
-
-    const empPhoto = document.getElementById('empPhoto');
-    const emp_name_english = document.getElementById('emp_name_english');
-    const emp_name_chinese = document.getElementById('emp_name_chinese');
-    const emp_position = document.getElementById('emp_position');
-    const emp_sex = document.getElementById('emp_sex');
-    const emp_blood_type = document.getElementById('emp_blood_type');
-    const emp_dob = document.getElementById('emp_dob');
-    const emp_height = null; // not shown in simplified modal but kept in data
-    const emp_weight = null;
-    const emp_id_card = document.getElementById('emp_id_card');
-    const emp_email = document.getElementById('emp_email');
-    const emp_mobile = document.getElementById('emp_mobile');
-
-    async function loadEmployees() {
-      showLoader('Loading employees...');
-      try {
-        const { data, error } = await supabase
-          .from('employees')
-          .select('*')
-          .order('id', { ascending: false });
-
-        hideLoader();
-
-        if (error) {
-          console.error('Error loading employees:', error);
-          dbTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
-          employeesCache = [];
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          dbTbody.innerHTML = `<tr><td colspan="4">No employees found.</td></tr>`;
-          employeesCache = [];
-          return;
-        }
-
-        employeesCache = data;
-        renderEmployeeRows(data);
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        dbTbody.innerHTML = `<tr><td colspan="4">Error loading data.</td></tr>`;
-      }
-    }
-
-    function renderEmployeeRows(list) {
-      dbTbody.innerHTML = '';
-      list.forEach(row => {
-        const name = row.name_english ?? '';
-        const position = row.position ?? '';
-        const email = row.email ?? '';
-        const mobile = row.mobile ?? '';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(position)}</td><td>${escapeHtml(email)}</td><td>${escapeHtml(mobile)}</td>`;
-        tr.onclick = () => openEmpModal(row);
-        dbTbody.appendChild(tr);
-      });
-    }
-
-    empSearch.addEventListener('input', (e) => {
-      const q = (e.target.value || '').trim().toLowerCase();
-      if (!q) {
-        renderEmployeeRows(employeesCache);
-        return;
-      }
-      const filtered = employeesCache.filter(r => {
-        return (String(r.name_english || '') + ' ' + String(r.position || '') + ' ' + String(r.email || '') + ' ' + String(r.mobile || '')).toLowerCase().includes(q);
-      });
-      renderEmployeeRows(filtered);
-    });
-
-    function openEmpModal(row) {
-      const photo = row.photo_url ?? row.photo ?? '';
-      empPhoto.src = photo || 'https://via.placeholder.com/300x300?text=No+Photo';
-      empPhoto.alt = (row.name_english || 'Employee');
-
-      emp_name_english.textContent = row.name_english ?? '';
-      emp_name_chinese.textContent = row.name_chinese ?? '';
-      emp_position.textContent = row.position ?? '';
-      emp_sex.textContent = row.sex ?? '';
-      emp_blood_type.textContent = row.blood_type ?? '';
-      emp_dob.textContent = row.dob ? new Date(row.dob).toLocaleDateString() : '';
-      emp_id_card.textContent = row.id_card ?? '';
-      emp_email.textContent = row.email ?? '';
-      emp_mobile.textContent = row.mobile ?? '';
-
-      empModal.classList.add('show');
-    }
-
-    closeEmpModal.addEventListener('click', closeEmp);
-    closeEmpBtn.addEventListener('click', closeEmp);
-    function closeEmp() {
-      empModal.classList.remove('show');
-    }
-
-
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function showLoader(txt = 'Loading...') {
-      loaderTxt.textContent = txt;
-      loader.classList.add('active');
-    }
-
-    function hideLoader() {
-      loader.classList.remove('active');
-    }
-
-    (async function init() {
-      try {
-
-        await fetchIRs();
-        await loadCases();
-        await loadEmployees();
-      } catch (err) {
-        console.error('Init error', err);
-      }
-    })();
+  // ======== Initialization ========
+  loadEmployees();
+  fetchIRs();
+});
