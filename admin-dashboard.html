@@ -81,6 +81,9 @@
         <input id="case_name" placeholder="Case" required style="flex:2;min-width:220px;">
         <input id="case_employees" placeholder="Employee(s) Involved" required style="flex:2;min-width:220px;">
         <input id="case_officer" placeholder="Grievance Officer" required style="flex:1;min-width:160px;">
+        <input id="case_file" type="file" accept=".pdf,.doc,.docx,.jpg,.png">
+        <div id="caseFilePreview"></div>
+
         <button type="submit" id="addCaseBtn" class="action-btn"
           style="background:#0a84ff;color:#fff;border-radius:10px;padding:10px 14px;">Add Case</button>
       </form>
@@ -88,6 +91,7 @@
       <table>
         <thead>
           <tr>
+            <th>Transcode</th>
             <th>Case</th>
             <th>Area</th>
             <th>Status</th>
@@ -232,7 +236,7 @@
       </div>
     </div>
   </div>
- <script src="admin.js"></script>
+  <script src="admin.js"></script>
 
 
 
