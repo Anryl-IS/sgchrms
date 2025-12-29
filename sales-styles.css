@@ -78,7 +78,7 @@ body {
 
 .sidebar {
     background: var(--card);
-    padding: 20px;
+    padding: 30px;
     border-radius: 16px;
     display: flex;
     flex-direction: column;
@@ -448,4 +448,21 @@ label {
     background: var(--card, #15171a);
     z-index: 1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+
+.tab-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tab-content th, .tab-content td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.tab-content th {
+  background-color: var(--card, #15171a);
+  color: #fff;
 }

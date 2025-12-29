@@ -214,4 +214,3 @@ searchInput.addEventListener("input", () => {
   });
 });
 
-

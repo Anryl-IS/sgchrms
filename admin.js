@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
- 
+
   const { createClient } = supabase;
   const supabaseClient = createClient(
     "https://hzafznqoyinfjbqrrerp.supabase.co",
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  
+
   async function fetchIRs(area = "all") {
     showLoader("Fetching Incident Reports...");
     let query = supabaseClient.from("ir_cases").select("*").order("date_posted", { ascending: false });
@@ -172,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCaseTable() {
     caseTbody.innerHTML = casesData.map(c => {
+      const fileLink = c.file_url ? `<a href="${c.file_url}" target="_blank" style="color:#0a84ff;">View File</a>` : "No File";
       return `
       <tr onclick="openCaseModal(${c.id})" style="cursor:pointer;">
         <td>${c.transcode || "-"}</td>
@@ -183,20 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     }).join("");
   }
-
-
-  window.openCaseModal = (id) => {
-    const c = casesData.find(c => c.id === id);
-    if (!c) return;
-    editingCaseId = id;
-    document.getElementById("detail_case_name").textContent = c.case_name;
-    document.getElementById("detail_area").textContent = c.area;
-    document.getElementById("detail_employees").textContent = c.employees;
-    document.getElementById("detail_officer").textContent = c.officer;
-    detail_STATUS.value = c.status;
-    caseModal.style.display = "flex";
-  };
-
   caseForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     showLoader("Adding Case...");
@@ -213,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fileName = `${Date.now()}_${file.name}`;
       const { data: uploadData, error: uploadError } = await supabaseClient
         .storage
-        .from("cases-files") 
+        .from("cases-files")
         .upload(fileName, file);
 
       if (uploadError) {
@@ -254,28 +241,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  async function fetchEmployees() {
-    showLoader("Fetching Employees...");
-    const { data, error } = await supabaseClient.from("employees").select("*").order("name_english", { ascending: true });
-    hideLoader();
-    if (error) return console.error("Error fetching employees:", error);
-    employeesData = data || [];
-    renderEmployeeTable();
+  async function fetchCases() {
+    showLoader("Fetching Cases...");
+    try {
+      const { data, error } = await supabaseClient
+        .from("cases")
+        .select("*")
+        .order("case_name", { ascending: true });
+
+      hideLoader();
+
+      if (error) {
+        console.error("Error fetching cases:", error);
+        caseTbody.innerHTML = `<tr><td colspan="5">Error loading cases.</td></tr>`;
+        return;
+      }
+
+      casesData = data || [];
+      renderCaseTable();
+    } catch (err) {
+      hideLoader();
+      console.error(err);
+      caseTbody.innerHTML = `<tr><td colspan="5">Error loading cases.</td></tr>`;
+    }
   }
 
-  function renderEmployeeTable() {
-    dbTbody.innerHTML = employeesData.map(emp => {
-      const empData = JSON.stringify(emp).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+  function renderCaseTable() {
+    if (!caseTbody) return;
+
+    caseTbody.innerHTML = casesData.map(c => {
       return `
-        <tr style="cursor:pointer;" onclick="openEmployeeModal(${empData})">
-          <td>${emp.name_english || "-"}</td>
-          <td>${emp.position || "-"}</td>
-          <td>${emp.email || "-"}</td>
-          <td>${emp.mobile || "-"}</td>
-        </tr>
-      `;
+      <tr style="cursor:pointer;" onclick="openCaseModal(${c.id})">
+        <td>${c.transcode || "-"}</td>
+        <td>${c.case_name || "-"}</td>
+        <td>${c.area || "-"}</td>
+        <td>${c.status || "-"}</td>
+        <td>${c.file_url ? `<a href="${c.file_url}" target="_blank" style="color:#0a84ff;" onclick="event.stopPropagation()">View File</a>` : "No File"}</td>
+      </tr>
+    `;
     }).join("");
   }
+
+  window.openCaseModal = (id) => {
+  const c = casesData.find(x => x.id === id);
+  if (!c) return;
+
+  editingCaseId = id;
+
+  document.getElementById("detail_case_name").textContent = c.case_name || "-";
+  document.getElementById("detail_area").textContent = c.area || "-";
+  document.getElementById("detail_employees").textContent = c.employees || "-";
+  document.getElementById("detail_officer").textContent = c.officer || "-";
+  detail_STATUS.value = c.status || "-";
+
+  const fileLinkEl = document.getElementById("detail_file_link");
+  if (fileLinkEl) {
+    fileLinkEl.innerHTML = c.file_url
+      ? `<a href="${c.file_url}" target="_blank" style="color:#0a84ff;">View / Download File</a>`
+      : "No file attached";
+  }
+
+  caseModal.style.display = "flex";
+};
+
+  // Close button
+  closeCaseModal?.addEventListener("click", () => caseModal.style.display = "none");
+  cancelCaseBtn?.addEventListener("click", () => caseModal.style.display = "none");
+
+
 
   window.openEmployeeModal = (emp) => {
     if (!empModal) return;
@@ -324,6 +357,50 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === empModal) empModal.style.display = "none";
   };
 
+async function fetchEmployees() {
+  showLoader("Fetching Employees...");
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("employees")
+      .select("*")
+      .order("name_english", { ascending: true });
+
+    hideLoader();
+
+    if (error) {
+      console.error("Error fetching employees:", error);
+      dbTbody.innerHTML = `<tr><td colspan="4">Error loading employees.</td></tr>`;
+      return;
+    }
+
+    employeesData = data || [];
+    renderEmployeesTable();
+  } catch (err) {
+    hideLoader();
+    console.error(err);
+    dbTbody.innerHTML = `<tr><td colspan="4">Error loading employees.</td></tr>`;
+  }
+}
+
+function renderEmployeesTable() {
+  if (!dbTbody) return;
+
+  dbTbody.innerHTML = employeesData.map(emp => {
+    const empData = JSON.stringify(emp)
+      .replace(/'/g, "&apos;")
+      .replace(/"/g, "&quot;");
+
+    return `
+      <tr style="cursor:pointer;" onclick="openEmployeeModal(${empData})">
+        <td>${emp.name_english || "-"}</td>
+        <td>${emp.position || "-"}</td>
+        <td>${emp.email || "-"}</td>
+        <td>${emp.mobile || "-"}</td>
+      </tr>
+    `;
+  }).join("");
+}
 
   fetchIRs();
   fetchCases();
