@@ -62,6 +62,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loader) loader.style.display = "none";
   }
 
+  // Resolve a stored file path or full URL to a public URL for the "cases-files" bucket
+  function resolveCaseFileUrl(filePath) {
+    if (!filePath) return null;
+    if (typeof filePath === 'string' && filePath.startsWith('http')) return filePath;
+    try {
+      // getPublicUrl returns an object { publicUrl }
+      const { publicUrl } = supabaseClient.storage.from('cases-files').getPublicUrl(filePath);
+      return publicUrl || null;
+    } catch (err) {
+      console.warn('resolveCaseFileUrl error', err);
+      return null;
+    }
+  }
+
 
   tabs.forEach(btn => {
     btn.addEventListener("click", () => {
@@ -91,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!reportsTbody) return;
     reportsTbody.innerHTML = reportsData.map(ir => {
       const transcode = ir.transcode || "N/A";
-      const fileLink = ir.file_url ? `<a href="${ir.file_url}" target="_blank" style="color:#0a84ff;">View File</a>` : "No File";
+  const fileLink = ir.file_url ? `<a class="file-link" href="${ir.file_url}" target="_blank" onclick="event.stopPropagation()">View File</a>` : "No File";
       return `
         <tr>
           <td>${transcode}</td>
@@ -161,29 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  async function fetchCases() {
-    showLoader("Fetching Cases...");
-    const { data, error } = await supabaseClient.from("cases").select("*").order("case_name", { ascending: true });
-    hideLoader();
-    if (error) return console.error("Error fetching cases:", error);
-    casesData = data || [];
-    renderCaseTable();
-  }
-
-  function renderCaseTable() {
-    caseTbody.innerHTML = casesData.map(c => {
-      const fileLink = c.file_url ? `<a href="${c.file_url}" target="_blank" style="color:#0a84ff;">View File</a>` : "No File";
-      return `
-      <tr onclick="openCaseModal(${c.id})" style="cursor:pointer;">
-        <td>${c.transcode || "-"}</td>
-        <td>${c.case_name}</td>
-        <td>${c.area}</td>
-        <td>${c.status}</td>
-        <td>${fileLink}</td>
-      </tr>
-    `;
-    }).join("");
-  }
+  // ...existing (later) cases functions are kept below
   caseForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     showLoader("Adding Case...");
@@ -200,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fileName = `${Date.now()}_${file.name}`;
       const { data: uploadData, error: uploadError } = await supabaseClient
         .storage
-        .from("cases-files")
+        .from("cases")
         .upload(fileName, file);
 
       if (uploadError) {
@@ -209,13 +201,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-
+      // getPublicUrl returns { publicUrl }
       const { publicUrl } = supabaseClient
         .storage
-        .from("cases-files")
+        .from("cases")
         .getPublicUrl(fileName);
 
-      file_url = publicUrl;
+      file_url = publicUrl || null;
     }
 
 
@@ -223,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const number = String(casesData.filter(c => c.area === area).length + 1).padStart(3, "0");
     const transcode = `${areaCode}-CASE-${number}`;
 
-    const payload = { area, case_name, employees, officer, status: "Open", transcode, file_url };
+  const payload = { area, case_name, employees, officer, status: "Open", transcode, file_url, supporting_docs: file_url };
     const { data, error } = await supabaseClient.from("cases").insert([payload]).select();
 
     if (error) {
@@ -268,15 +260,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCaseTable() {
     if (!caseTbody) return;
-
     caseTbody.innerHTML = casesData.map(c => {
+      const storedPath = c.supporting_docs || c.file_url;
+      const publicUrl = resolveCaseFileUrl(storedPath);
+  const fileLink = publicUrl ? `<a class="file-link" href="${publicUrl}" target="_blank" onclick="event.stopPropagation()">View File</a>` : "No File";
       return `
       <tr style="cursor:pointer;" onclick="openCaseModal(${c.id})">
         <td>${c.transcode || "-"}</td>
         <td>${c.case_name || "-"}</td>
         <td>${c.area || "-"}</td>
         <td>${c.status || "-"}</td>
-        <td>${c.file_url ? `<a href="${c.file_url}" target="_blank" style="color:#0a84ff;" onclick="event.stopPropagation()">View File</a>` : "No File"}</td>
+        <td>${fileLink}</td>
       </tr>
     `;
     }).join("");
@@ -296,8 +290,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const fileLinkEl = document.getElementById("detail_file_link");
   if (fileLinkEl) {
-    fileLinkEl.innerHTML = c.file_url
-      ? `<a href="${c.file_url}" target="_blank" style="color:#0a84ff;">View / Download File</a>`
+    const storedPath = c.supporting_docs || c.file_url;
+    const publicUrl = resolveCaseFileUrl(storedPath);
+      fileLinkEl.innerHTML = publicUrl
+        ? `<a class="file-link" href="${publicUrl}" target="_blank">View / Download File</a>`
       : "No file attached";
   }
 
@@ -312,12 +308,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.openEmployeeModal = (emp) => {
     if (!empModal) return;
-    document.getElementById("empPhoto").src = emp.photo_url || "https://i.imgur.com/6SF5KQG.png";
-    const fields = ["name_english", "name_chinese", "position", "sex", "blood_type", "email", "mobile", "id_card", "dob"];
+    const photoEl = document.getElementById("empPhoto");
+    if (photoEl) photoEl.src = emp.photo_url || "https://i.imgur.com/6SF5KQG.png";
+
+    // populate visible fields (removed name_chinese)
+    const fields = ["name_english", "position", "sex", "blood_type", "email", "mobile", "id_card", "dob"];
     fields.forEach(f => {
       const el = document.getElementById("emp_" + f);
       if (el) el.textContent = emp[f] || "-";
     });
+
+    // populate 201 file link if present
+    const fileLinkEl = document.getElementById("emp_201_file_link");
+    if (fileLinkEl) {
+      if (emp.file_201_url) {
+  // make the anchor open our preview modal (201 files only)
+  fileLinkEl.innerHTML = `<a class="file-link" href="#" onclick="(function(e){e.stopPropagation(); openEmployeeFileModal(e, '${emp.file_201_url}')})(event)">Open 201 file</a>`;
+      } else {
+        fileLinkEl.textContent = "No 201 file.";
+      }
+    }
+
     empModal.style.display = "flex";
   };
 
@@ -405,4 +416,43 @@ function renderEmployeesTable() {
   fetchIRs();
   fetchCases();
   fetchEmployees();
+
+  // wire modal close buttons (new .modal-close)
+  document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const modal = e.target.closest('.modal');
+      if (modal) modal.style.display = 'none';
+    });
+  });
+
+  // open employee 201 file preview modal
+  window.openEmployeeFileModal = (e, url) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const modal = document.getElementById('empFileModal');
+    const iframe = document.getElementById('empFileIframe');
+    const download = document.getElementById('empFileDownload');
+    if (!modal || !iframe || !download) return;
+    iframe.src = url;
+    download.href = url;
+    modal.style.display = 'flex';
+  };
+
+  // open employee file preview modal
+
+
+  // small UX helpers
+  const globalSearch = document.getElementById('globalSearch');
+  const themeToggle = document.getElementById('themeToggle');
+  globalSearch?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    // quick filter on employees table
+    if (q.length > 1) {
+      empSearch.value = q;
+      empSearch.dispatchEvent(new Event('input'));
+    }
+  });
+
+  themeToggle?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark-mode');
+  });
 });

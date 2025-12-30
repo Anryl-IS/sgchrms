@@ -35,13 +35,19 @@
 
   <!-- MAIN -->
   <main class="main">
-    <h1>Admin Dashboard</h1>
+    <header class="topbar">
+      <h1>HRMD — Admin Dashboard</h1>
+      <div class="topbar-actions">
+        <input id="globalSearch" class="search-input" placeholder="Search everything...">
+        <button class="action-btn" id="themeToggle">Theme</button>
+      </div>
+    </header>
 
     <!-- INCIDENT REPORTS TAB -->
     <div id="irTab" class="tab-content active">
-      <h2 style="color:#fff;margin-bottom:10px;">Incident Reports</h2>
+      <h2 class="section-title">Incident Reports</h2>
 
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:15px;">
+      <div class="toolbar" style="margin-bottom:15px;">
         <select id="areaFilter"
           style="padding:10px;border-radius:8px;background:#161616;border:1px solid #2d2d2f;color:#fff;">
           <option value="all">All Areas</option>
@@ -56,7 +62,8 @@
         <button id="addIRBtn">+ Add Incident Report</button>
       </div>
 
-      <table>
+  <div class="table-wrap card">
+  <table>
         <thead>
           <tr>
             <th>Transaction Code</th>
@@ -70,13 +77,15 @@
         </thead>
         <tbody id="reportsTbody"></tbody>
       </table>
+      </div>
     </div>
 
 
     <!-- CASE MANAGEMENT TAB -->
     <div id="caseTab" class="tab-content">
-      <h2 style="margin-bottom:8px;color:#fff;">Case Management</h2>
+      <h2 class="section-title">Case Management</h2>
 
+      <div class="table-wrap card">
       <table>
         <thead>
           <tr>
@@ -89,16 +98,18 @@
         </thead>
         <tbody id="caseTbody"></tbody>
       </table>
+      </div>
     </div>
 
 
     <div id="dbTab" class="tab-content">
-      <h2 style="margin-bottom:8px;color:#fff;">Employee Database</h2>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2 class="section-title">Employee Database</h2>
+      <div class="toolbar" style="margin-bottom:8px;">
         <input id="empSearch" class="search-input" placeholder="Search name, position, email or mobile...">
         <div class="small-muted">Records Loaded.</div>
       </div>
 
+      <div class="table-wrap card">
       <table>
         <thead>
           <tr>
@@ -110,6 +121,7 @@
         </thead>
         <tbody id="dbTbody"></tbody>
       </table>
+      </div>
     </div>
 
     <div class="watermark">Designed & Developed by: <strong>Edwin Angelo Catequista</strong></div>
@@ -117,7 +129,10 @@
 
   <div class="modal" id="irModal">
     <div class="modal-card">
-      <h3 id="modalTitle">Add Incident Report</h3>
+      <div class="modal-header">
+        <h3 id="modalTitle">Add Incident Report</h3>
+        <button type="button" class="modal-close" aria-label="Close" id="closeModalBtn">✕</button>
+      </div>
       <form id="irForm">
         <input type="hidden" id="irId">
         <input id="agent_name" type="text" placeholder="Agent name" required>
@@ -143,43 +158,61 @@
 
   <div id="caseModal" class="modal" aria-hidden="true">
     <div class="modal-card" style="width:820px; max-width:95%;">
-      <span style="position:absolute; right:18px; top:12px; font-size:20px; color:#aaa; cursor:pointer;"
-        id="closeCaseModal">&times;</span>
-      <h3 id="caseModalTitle">Case Details</h3>
+      <div class="modal-header">
+        <h3 id="caseModalTitle">Case Details</h3>
+        <button class="modal-close" id="closeCaseModal" aria-label="Close">✕</button>
+      </div>
 
-      <div id="caseDetailsContainer" style="margin-top:8px;">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:220px;">
-            <div class="small-muted">Case</div>
-            <div id="detail_case_name" style="margin-bottom:8px;"></div>
-            <div class="small-muted">Area</div>
-            <div id="detail_area" style="margin-bottom:8px;"></div>
-            <div class="small-muted">Employees</div>
-            <div id="detail_employees" style="margin-bottom:8px;"></div>
-            <div class="small-muted">Officer</div>
-            <div id="detail_officer" style="margin-bottom:8px;"></div>
-            <div class="small-muted">File</div>
-            <div id="detail_file_link" style="margin-bottom:8px;"></div>
+      <div id="caseDetailsContainer" class="case-details" style="margin-top:8px;">
+        <div class="case-grid">
+          <div class="case-col">
+            <div class="field">
+              <div class="label small-muted">Case</div>
+              <div class="value" id="detail_case_name"></div>
+            </div>
+
+            <div class="field">
+              <div class="label small-muted">Area</div>
+              <div class="value" id="detail_area"></div>
+            </div>
+
+            <div class="field">
+              <div class="label small-muted">Employees</div>
+              <div class="value" id="detail_employees"></div>
+            </div>
+
+            <div class="field">
+              <div class="label small-muted">Officer</div>
+              <div class="value" id="detail_officer"></div>
+            </div>
+
+            <div class="field">
+              <div class="label small-muted">File</div>
+              <div class="value" id="detail_file_link"></div>
+            </div>
           </div>
-          <div style="flex:1;min-width:200px;">
-            <div class="small-muted">STATUS</div>
-            <select id="detail_STATUS"
-              style="width:100%;padding:10px;border-radius:8px;background:#161616;border:1px solid #2d2d2f;color:#fff;">
-              <option value="OPEN">OPEN</option>
-              <option value="NTE">IR</option>
-              <option value="NTE">NTE</option>
-              <option value="AH">AH</option>
-              <option value="NTW">NTW</option>
-              <option value="NTD">NTD</option>
-            </select>
+
+          <div class="case-col">
+            <div class="field">
+              <div class="label small-muted">Status</div>
+              <div class="value">
+                <select id="detail_STATUS" class="status-select">
+                  <option value="OPEN">OPEN</option>
+                  <option value="NTE">IR</option>
+                  <option value="NTE">NTE</option>
+                  <option value="AH">AH</option>
+                  <option value="NTW">NTW</option>
+                  <option value="NTD">NTD</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:flex-end;margin-top:18px;">
-          <div id="savedMsg" style="margin-right:auto;color:#4cd964;font-weight:600;opacity:0;transition:opacity .2s;">
-            Status updated!</div>
-          <button class="action-btn" id="cancelCaseBtn" style="background:#444;color:#fff;">Close</button>
-          <button class="action-btn" id="saveCaseBtn"
-            style="background:#00b37e;color:#fff;display:none;margin-left:8px;">Save</button>
+
+        <div class="modal-footer case-footer" style="margin-top:18px;">
+          <div id="savedMsg" class="small-muted saved-msg">Status updated!</div>
+          <button class="btn btn-secondary" id="cancelCaseBtn">Close</button>
+          <button class="btn btn-primary" id="saveCaseBtn" style="display:none;margin-left:8px;">Save</button>
         </div>
       </div>
     </div>
@@ -187,36 +220,39 @@
 
   <div id="empModal" class="modal" aria-hidden="true">
     <div class="modal-card" style="width:820px; max-width:95%;">
-      <span style="position:absolute; right:18px; top:12px; font-size:20px; color:#aaa; cursor:pointer;"
-        id="closeEmpModal">&times;</span>
-      <h3 id="empModalTitle">Employee Profile</h3>
+      <div class="modal-header">
+        <h3 id="empModalTitle">Employee Profile</h3>
+        <button class="modal-close" id="closeEmpModal" aria-label="Close">✕</button>
+      </div>
 
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
         <div style="min-width:140px; text-align:center;">
-          <img id="empPhoto" src="" alt="Employee photo"
-            style="width:120px;height:120px;border-radius:999px;object-fit:cover;border:3px solid #1e1e1f;">
+          <img id="empPhoto" src="https://i.imgur.com/6SF5KQG.png" alt="Employee photo"
+            style="width:120px;height:120px;border-radius:8px;object-fit:cover;border:3px solid #1e1e1f;">
         </div>
         <div style="flex:1;min-width:280px;">
           <div class="small-muted">Name (English)</div>
-          <div id="emp_name_english"></div>
-          <div class="small-muted">Name (Chinese)</div>
-          <div id="emp_name_chinese"></div>
+          <div id="emp_name_english">-</div>
+
+          <div class="small-muted">201 File</div>
+          <div id="emp_201_file_link">No 201 file.</div>
+
           <div class="small-muted">Position</div>
-          <div id="emp_position"></div>
+          <div id="emp_position">-</div>
           <div class="small-muted">Sex</div>
-          <div id="emp_sex"></div>
+          <div id="emp_sex">-</div>
           <div class="small-muted">Blood Type</div>
-          <div id="emp_blood_type"></div>
+          <div id="emp_blood_type">-</div>
         </div>
         <div style="flex:1;min-width:220px;">
           <div class="small-muted">Email</div>
-          <div id="emp_email"></div>
+          <div id="emp_email">-</div>
           <div class="small-muted">Mobile</div>
-          <div id="emp_mobile"></div>
+          <div id="emp_mobile">-</div>
           <div class="small-muted">ID Card</div>
-          <div id="emp_id_card"></div>
+          <div id="emp_id_card">-</div>
           <div class="small-muted">DOB</div>
-          <div id="emp_dob"></div>
+          <div id="emp_dob">-</div>
         </div>
       </div>
 
@@ -226,10 +262,24 @@
     </div>
   </div>
   <script src="admin.js"></script>
-
-
-
-  </script>
+  <!-- Employee 201 file preview modal (only used for 201 files) -->
+  <div id="empFileModal" class="modal" aria-hidden="true">
+    <div class="modal-card" style="max-width:900px; width:95%;">
+      <div class="modal-header">
+        <h3>201 File Preview</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="empFileContainer" style="min-height:280px;">
+          <iframe id="empFileIframe" src="" style="width:100%;height:420px;border:none;border-radius:8px;background:#fff"></iframe>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a id="empFileDownload" class="btn btn-primary" href="#" download>Download</a>
+        <button class="btn btn-secondary modal-close">Close</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
