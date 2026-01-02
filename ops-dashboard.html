@@ -11,13 +11,11 @@
   </head>
 <body>
   <aside class="sidebar">
-    <div class="logo-circle"><img src="https://i.imgur.com/6SF5KQG.png"></div>
+    <div class="logo-circle"><img src="https://i.imgur.com/6SF5KQG.png" alt="logo"></div>
     <h2>Operations Associate Dashboard</h2>
     <nav class="nav">
       <button class="tab-btn active" data-tab="employeeTab">Employees</button>
-      <button class="tab-btn" data-tab="complianceTab">Compliance & Policies</button>
       <button class="tab-btn" data-tab="addEmployeeTab">Add New Employee</button>
-      <button class="tab-btn" data-tab="auditTab">Reports & Audit Trails</button>
     </nav>
     <button id="logoutBtn">Logout</button>
   </aside>
@@ -43,22 +41,6 @@
         </table>
       </div>
     </div>
-    <div id="complianceTab" class="tab-content">
-      <h2>Compliance & Policy Tracker</h2>
-      <form id="policyForm">
-        <input id="policyTitle" placeholder="Policy Title" required>
-        <input id="policyDept" placeholder="Department" required>
-        <button type="submit">Add Policy</button>
-      </form>
-      <div class="search-container">
-        <select id="policyFilter"><option value="">All Departments</option></select>
-      </div>
-      <table>
-        <thead><tr><th>Policy</th><th>Department</th><th>Status</th></tr></thead>
-        <tbody id="policyTbody"></tbody>
-      </table>
-    </div>
-
     <div id="addEmployeeTab" class="tab-content">
       <form id="addEmpForm" enctype="multipart/form-data" class="add-employee-form">
         <h2>Add New Employee</h2>
@@ -109,14 +91,6 @@
       </form>
     </div>
 
-    <div id="auditTab" class="tab-content">
-      <h2>Reports & Audit Trails</h2>
-      <table>
-        <thead><tr><th>Action</th><th>User</th><th>Timestamp</th></tr></thead>
-        <tbody id="auditTbody"></tbody>
-      </table>
-    </div>
-
     <div class="watermark">Designed & Developed By : Edwin Angelo Catequista</div>
   </div>
 
@@ -156,44 +130,28 @@
       </div>
     </div>
   </div>
-  <div id="policyModal" class="modal"><div class="modal-content">
-    <span class="closeBtn" id="closePolicy">&times;</span>
-    <h2>Policy Details</h2>
-    <div id="policyDetails"></div>
-    <div class="modal-actions">
-      <button class="editBtn" id="savePolicy">💾 Save</button>
-      <button class="deleteBtn" id="deletePolicy">🗑️ Delete</button>
-    </div>
-  </div></div>
-
-  <div id="auditModal" class="modal"><div class="modal-content">
-    <span class="closeBtn" id="closeAudit">&times;</span>
-    <h2>Audit Log Details</h2>
-    <div id="auditDetails"></div>
-  </div></div>
-
   <div id="addEmpLoader" class="loader-add-emp">
     <div class="spinner-add-emp"></div>
     <div id="addEmpLoaderTxt">Processing...</div>
   </div>
 
   <script>
-    // === Auth check ===
+  
     if (sessionStorage.getItem("role") !== "ops") {
-      // window.location.href = "index.html"; // uncomment when integrated
+  
     }
     
-    // === Supabase Client ===
+ 
       const SUPABASE_URL = "https://hzafznqoyinfjbqrrerp.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWZ6bnFveWluZmpicXJyZXJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMzcsImV4cCI6MjA3NjA4MjMzN30.qQFFQ6fzqBXxl63JG4JWNZ0JR0ZVnoyiU65J4VlDNG8";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // === Global Elements ===
-    const loader = document.getElementById("loader"); // General dashboard loader
-    const loaderTxt = document.getElementById("loaderTxt"); // Text for general loader
+ 
+    const loader = document.getElementById("loader"); 
+    const loaderTxt = document.getElementById("loaderTxt");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    // === Tabs ===
+ 
     const tabBtns = document.querySelectorAll(".tab-btn");
     const contents = document.querySelectorAll(".tab-content");
     tabBtns.forEach(btn => btn.onclick = () => {
@@ -203,17 +161,17 @@
       document.getElementById(btn.dataset.tab).classList.add("active");
     });
 
-    // === Logout ===
+
     logoutBtn.onclick = () => {
-      loaderTxt.textContent = "Logging out, please wait..."; // Set text
+      loaderTxt.textContent = "Logging out, please wait..."; 
       loader.classList.add("active");
       setTimeout(() => {
         sessionStorage.clear();
-        window.location.href = "index.html"; // Redirect to login page
+        window.location.href = "index.html";
       }, 1500);
     };
     
-    /* ===== UTIL: escape HTML to avoid injection ===== */
+  
     function escapeHtml(str) {
       if (str === null || str === undefined) return "";
       return String(str)
@@ -224,23 +182,17 @@
         .replace(/'/g, "&#039;");
     }
 
-    // === Data (Policies & Audits are local) ===
-    let policies = JSON.parse(localStorage.getItem("policies")) || [];
-    let audits = JSON.parse(localStorage.getItem("audits")) || [];
-    
-    // === NEW: Employee cache ===
-    let employeesCache = []; // cached employees to filter/search locally
 
-    // =======================================================
-    // UPDATED: Employees Tab (from er-dashboard.html)
-    // =======================================================
+    let employeesCache = []; 
+
+
     const dbTbody = document.getElementById("dbTbody");
     const empSearch = document.getElementById("empSearch");
     const empModal = document.getElementById("empModal");
     const closeEmpModal = document.getElementById("closeEmpModal");
     const empCount = document.getElementById("empCount");
 
-    // Employee modal fields
+   
    const emp_name_english_modal = document.getElementById("emp_name_english_modal");
 const emp_position_modal = document.getElementById("emp_position_modal");
 const emp_sex_modal = document.getElementById("emp_sex_modal");
@@ -261,10 +213,10 @@ const emp_pagibig_modal = document.getElementById("emp_pagibig_modal");
       loader.classList.add("active");
       try {
         const { data, error } = await supabaseClient
-          .from("employees") // Assumes your table is 'employees'
+          .from("employees")
           .select("*")
           .order("id", { ascending: false });
-console.log("Employees fetched:", data); // <-- add this
+console.log("Employees fetched:", data); 
         loader.classList.remove("active");
 
         if (error) {
@@ -280,7 +232,7 @@ console.log("Employees fetched:", data); // <-- add this
           return;
         }
 
-        employeesCache = data; // cache
+        employeesCache = data;
         renderEmployeeRows(data);
         empCount.textContent = `${data.length} records loaded.`;
       } catch (err) {
@@ -294,10 +246,10 @@ console.log("Employees fetched:", data); // <-- add this
   dbTbody.innerHTML = "";
   list.forEach(row => {
     const name = row.name_english ?? ""; 
-    const position = row.position ?? "";  // make sure your table has 'position'
+    const position = row.position ?? ""; 
     const email = row.email ?? "";
     const mobile = row.mobile ?? "";
-    const fileUrl = row.file_201_url ?? ""; // keep if you added file upload
+    const fileUrl = row.file_201_url ?? "";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -340,7 +292,7 @@ console.log("Employees fetched:", data); // <-- add this
           alert("Error deleting employee: " + error.message);
           return;
         }
-        // refresh
+     
         await loadEmployees();
       } catch (err) {
         loader.classList.remove("active");
@@ -349,7 +301,7 @@ console.log("Employees fetched:", data); // <-- add this
       }
     }
 
-    // Search employees (local filter)
+  
     empSearch.addEventListener("input", (e) => {
       const q = (e.target.value || "").trim().toLowerCase();
       if (!q) {
@@ -357,7 +309,7 @@ console.log("Employees fetched:", data); // <-- add this
         return;
       }
       const filtered = employeesCache.filter(r => {
-        // Search against the same fields as the table
+     
         return (String(r.emp_name_english||"") + " " + String(r.emp_position||"") + " " + String(r.emp_email||"") + " " + String(r.emp_mobile||"")).toLowerCase().includes(q);
       });
       renderEmployeeRows(filtered);
@@ -365,7 +317,7 @@ console.log("Employees fetched:", data); // <-- add this
 
 function openEmpModal(row) {
   // photo
-  const photo = row.photo_url; // use the correct column name
+  const photo = row.photo_url;
 empPhoto.src = photo && photo.length > 0
   ? photo
   : "https://via.placeholder.com/300x300?text=No+Photo";
@@ -374,7 +326,7 @@ empPhoto.src = photo && photo.length > 0
   empPhoto.src = photo || "https://via.placeholder.com/300x300?text=No+Photo";
   empPhoto.alt = (row.name_english || "Employee");
 
-  // fill fields with actual keys
+ 
 emp_name_english_modal.textContent = row.name_english ?? "";
 emp_position_modal.textContent = row.position ?? "";
 emp_sex_modal.textContent = row.sex ?? "";
@@ -391,7 +343,7 @@ emp_philhealth_modal.textContent = row.philhealth ?? "";
 emp_pagibig_modal.textContent = row.pagibig ?? "";
 
 
-  // Add 201 file link if exists
+
   const existingLink = document.getElementById("emp201Link");
   if (existingLink) existingLink.remove(); // remove old link
 
@@ -411,93 +363,19 @@ emp_pagibig_modal.textContent = row.pagibig ?? "";
 }
 
 
-    // Close employee modal
+
     closeEmpModal.onclick = closeEmp;
     function closeEmp() {
       empModal.style.display = "none";
       empModal.setAttribute("aria-hidden", "true");
     }
-    // =======================================================
-    // END: Employees Tab
-    // =======================================================
-
-
-    // === Compliance Tab ===
-    const policyTbody = document.getElementById("policyTbody");
-    const policyFilter = document.getElementById("policyFilter");
-    const policyForm = document.getElementById("policyForm");
-    const policyTitle = document.getElementById("policyTitle");
-    const policyDept = document.getElementById("policyDept");
-    const policyModal = document.getElementById("policyModal");
-    const closePolicy = document.getElementById("closePolicy");
-    const policyDetails = document.getElementById("policyDetails");
-    const savePolicy = document.getElementById("savePolicy");
-    const deletePolicy = document.getElementById("deletePolicy");
-    let currentPolicyIndex = null;
-
-    function renderPolicies(list = policies){
-      policyTbody.innerHTML = "";
-      let depts = [...new Set(policies.map(p => p.dept))];
-      policyFilter.innerHTML = `<option value="">All Departments</option>` + depts.map(d => `<option value="${d}">${d}</option>`).join("");
-      list.forEach((p, i) => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `<td>${p.title}</td><td>${p.dept}</td><td>${p.status || 'Active'}</td>`;
-        tr.onclick = () => openPolicyModal(i);
-        policyTbody.appendChild(tr);
-      });
-      localStorage.setItem("policies", JSON.stringify(policies));
-    }
-
-    function openPolicyModal(i){
-      currentPolicyIndex = i;
-      const p = policies[i];
-      policyDetails.innerHTML = `<div class="info"><span>Title:</span> ${p.title}</div>
-                                <div class="info"><span>Department:</span> ${p.dept}</div>
-                                <div class="info"><span>Status:</span> ${p.status || 'Active'}</div>`;
-      policyModal.style.display = "flex";
-    }
-
-    closePolicy.onclick = () => policyModal.style.display = "none";
-
-    savePolicy.onclick = () => {
-      const p = policies[currentPolicyIndex];
-      // For demo, let's just mark it as Active (or add any logic you want)
-      p.status = 'Active';
-      addAuditLog(`Updated policy status: ${p.title}`); // <-- ADDED AUDIT
-      renderPolicies();
-      policyModal.style.display = "none";
-    };
-
-    deletePolicy.onclick = () => {
-      const p = policies.splice(currentPolicyIndex, 1);
-      addAuditLog(`Deleted policy: ${p[0].title}`); // <-- ADDED AUDIT
-      renderPolicies();
-      policyModal.style.display = "none";
-    };
-
-    policyForm.onsubmit = e => {
-      e.preventDefault();
-      const newPolicy = {title: policyTitle.value, dept: policyDept.value, status:'Active'};
-      policies.push(newPolicy);
-      addAuditLog(`Added policy: ${newPolicy.title}`); // <-- ADDED AUDIT
-      policyTitle.value = '';
-      policyDept.value = '';
-      renderPolicies();
-    };
-
-    policyFilter.onchange = () => {
-      const val = policyFilter.value;
-      renderPolicies(val ? policies.filter(p => p.dept === val) : policies);
-    };
-
-    // === Add New Employee Tab ===
+  
     const addEmpForm = document.getElementById("addEmpForm");
     const addEmpLoader = document.getElementById("addEmpLoader");
     const addEmpLoaderTxt = document.getElementById("addEmpLoaderTxt");
     const photoInput = document.getElementById("emp_photo");
     const photoPreview = document.getElementById("photoPreview");
 
-    // Photo Preview handler
     photoInput.onchange = () => {
       const file = photoInput.files[0];
       if (file) {
@@ -513,14 +391,13 @@ emp_pagibig_modal.textContent = row.pagibig ?? "";
       }
     };
 
-    // Form Submission handler
   addEmpForm.onsubmit = async (e) => {
   e.preventDefault();
   addEmpLoader.classList.add("active");
   addEmpLoaderTxt.textContent = "Processing...";
 
   try {
-    // Grab inputs
+
     const name_english = document.getElementById("emp_name_english").value.trim();
     const sex = document.getElementById("emp_sex").value;
     const blood_type = document.getElementById("emp_blood_type").value.trim();
@@ -545,7 +422,7 @@ emp_pagibig_modal.textContent = row.pagibig ?? "";
 
     if (!photoFile || !file201) throw new Error("Photo and 201 file are required.");
 
-    // Upload Photo
+ 
     addEmpLoaderTxt.textContent = "Uploading photo...";
     const photoName = `employee_photos/${Date.now()}_${name_english.replace(/\s+/g,'_')}.${photoFile.name.split('.').pop()}`;
     let { error: photoError } = await supabaseClient.storage.from("employee_photos").upload(photoName, photoFile);
@@ -553,7 +430,7 @@ emp_pagibig_modal.textContent = row.pagibig ?? "";
     const { data: photoUrlData } = supabaseClient.storage.from("employee_photos").getPublicUrl(photoName);
     const photo_url = photoUrlData.publicUrl;
 
-    // Upload 201 file
+    
     addEmpLoaderTxt.textContent = "Uploading 201 file...";
     const file201Name = `employee_201files/${Date.now()}_${name_english.replace(/\s+/g,'_')}_201.${file201.name.split('.').pop()}`;
     let { error: fileError } = await supabaseClient.storage.from("employee_201files").upload(file201Name, file201);
@@ -588,44 +465,8 @@ emp_pagibig_modal.textContent = row.pagibig ?? "";
 };
 
 
-    // === Audit Trail Tab ===
-    const auditTbody = document.getElementById("auditTbody");
-    const auditModal = document.getElementById("auditModal");
-    const closeAudit = document.getElementById("closeAudit");
-    const auditDetails = document.getElementById("auditDetails");
-
-    function addAuditLog(action, user = 'ops@user.com') {
-      const timestamp = new Date().toLocaleString();
-      audits.unshift({ action, user, timestamp }); // Add new logs to the top
-      if (audits.length > 100) audits.pop(); // Keeps the log from getting too big
-      localStorage.setItem("audits", JSON.stringify(audits));
-      renderAudits(); // Re-render the audit log table
-    }
-
-    function renderAudits() {
-      auditTbody.innerHTML = "";
-      audits.forEach((log, i) => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `<td>${log.action}</td><td>${log.user}</td><td>${log.timestamp}</td>`;
-        tr.onclick = () => openAuditModal(i);
-        auditTbody.appendChild(tr);
-      });
-    }
-
-    function openAuditModal(i) {
-      const log = audits[i];
-      auditDetails.innerHTML = `<div class="info"><span>Action:</span> ${log.action}</div>
-                                <div class="info"><span>User:</span> ${log.user}</div>
-                                <div class="info"><span>Timestamp:</span> ${log.timestamp}</div>`;
-      auditModal.style.display = "flex";
-    }
-
-    closeAudit.onclick = () => auditModal.style.display = "none";
-
     // === Initial Render ===
-    loadEmployees(); // <-- UPDATED
-    renderPolicies();
-    renderAudits();
+    loadEmployees();
   </script>
 </body>
 </html>
